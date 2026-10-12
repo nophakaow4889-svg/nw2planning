@@ -1,188 +1,30 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ระบบซิงค์ข้อมูล Realtime</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      max-width: 600px;
-      margin: 40px auto;
-      padding: 20px;
-      background-color: #f4f6f8;
-      color: #333;
-    }
-    .card {
-      background: #ffffff;
-      padding: 24px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    }
-    h2 {
-      margin-top: 0;
-      color: #1a73e8;
-    }
-    .input-group {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 20px;
-    }
-    input[type="text"] {
-      flex: 1;
-      padding: 10px 14px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 15px;
-      outline: none;
-    }
-    input[type="text"]:focus {
-      border-color: #1a73e8;
-    }
-    button {
-      padding: 10px 20px;
-      background-color: #1a73e8;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      font-size: 15px;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    button:hover {
-      background-color: #1557b0;
-    }
-    ul {
-      list-style-type: none;
-      padding: 0;
-      margin: 0;
-    }
-    li {
-      background: #f8f9fa;
-      padding: 12px 16px;
-      border: 1px solid #e9ecef;
-      border-radius: 6px;
-      margin-bottom: 8px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .delete-btn {
-      background: #dc3545;
-      padding: 6px 12px;
-      font-size: 13px;
-    }
-    .delete-btn:hover {
-      background: #c82333;
-    }
-    .empty-msg {
-      color: #888;
-      text-align: center;
-      padding: 12px;
-    }
-  </style>
-</head>
-<body>
-
-  <div class="card">
-    <h2>💬 ระบบบันทึกข้อความ Realtime</h2>
-    
-    <!-- ฟอร์มป้อนข้อมูล -->
-    <div class="input-group">
-      <input type="text" id="messageInput" placeholder="พิมพ์ข้อความที่ต้องการเพิ่ม..." autocomplete="off">
-      <button id="addBtn">ส่งข้อมูล</button>
-    </div>
-
-    <!-- รายการแสดงผล -->
-    <ul id="dataList">
-      <li class="empty-msg">กำลังโหลดข้อมูล...</li>
-    </ul>
-  </div>
-
-  <!-- โหลด Firebase SDK แบบ Modular (ES Module) -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-
-    // 1. นำค่า Config จาก Firebase Console มาวางแทนที่ตรงนี้
-    const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT.firebaseapp.com",
-      databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
-      projectId: "YOUR_PROJECT",
-      storageBucket: "YOUR_PROJECT.appspot.com",
-      messagingSenderId: "YOUR_SENDER_ID",
-      appId: "YOUR_APP_ID"
-    };
-
-    // 2. เริ่มต้นใช้งาน Firebase App และ Realtime Database
-    const app = initializeApp(firebaseConfig);
-    const database = getDatabase(app);
-    const messagesRef = ref(database, 'messages');
-
-    // อ้างอิง Element ใน HTML
-    const messageInput = document.getElementById('messageInput');
-    const addBtn = document.getElementById('addBtn');
-    const dataList = document.getElementById('dataList');
-
-    // 3. ฟังก์ชันบันทึกข้อมูลขึ้น Firebase
-    function addMessage() {
-      const text = messageInput.value.trim();
-      if (text !== "") {
-        push(messagesRef, {
-          text: text,
-          timestamp: Date.now()
-        }).then(() => {
-          messageInput.value = ""; // ล้างช่องป้อนข้อความ
-        }).catch((error) => {
-          alert("เกิดข้อผิดพลาดในการบันทึก: " + error.message);
-        });
-      }
-    }
-
-    // 4. ฟังก์ชันลบข้อมูลตาม Key
-    window.deleteMessage = function(key) {
-      const itemRef = ref(database, `messages/${key}`);
-      remove(itemRef);
-    };
-
-    // 5. ดึงข้อมูลและรับฟังการอัปเดตแบบ Real-time (ทำงานทันทีเมื่อข้อมูลใน Database เปลี่ยนแปลง)
-    onValue(messagesRef, (snapshot) => {
-      dataList.innerHTML = ""; // ล้างรายการเดิมก่อนวาดใหม่
-      const data = snapshot.val();
-
-      if (data) {
-        // วนลูปนำรายการทั้งหมดมาแสดงผล
-        Object.keys(data).forEach((key) => {
-          const item = data[key];
-          const li = document.createElement('li');
-          li.innerHTML = `
-            <span>${escapeHtml(item.text)}</span>
-            <button class="delete-btn" onclick="deleteMessage('${key}')">ลบ</button>
-          `;
-          dataList.appendChild(li);
-        });
-      } else {
-        dataList.innerHTML = '<li class="empty-msg">ยังไม่มีข้อมูลในระบบ</li>';
-      }
-    });
-
-    // ป้องกันการโจมตีแบบ XSS
-    function escapeHtml(text) {
-      return text
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-    }
-
-    // เหตุการณ์เมื่อกดปุ่มส่ง หรือกด Enter
-    addBtn.addEventListener('click', addMessage);
-    messageInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') addMessage();
-    });
-  </script>
-
-</body>
-</html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ติดตามงาน ห้องวางแผน แขวงทางหลวงนครสวรรค์ที่ 2</title>
+<meta name="theme-color" content="#000000">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --black:#000;
+  --bg:#0d0d0d;
+  --card:#181818;
+  --card2:#222;
+  --line:#2e2e2e;
+  --text:#f4f4f4;
+  --mute:#a3a3a3;
+  --yellow:#ffc400;
+  --yellow-d:#e0a900;
+  --red:#ff5d4f;
+  --green:#4cd07d;
+  --blue:#6aa8ff;
+  --head:'Prompt','Sarabun','Noto Sans Thai',sans-serif;
+  --body:'Sarabun','Noto Sans Thai',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%;color-scheme:dark}
+body{background:var(--bg);color:var(--text);font:400 16px/1.55 var(--body);min-height:100vh;padding-bottom:88px}
