@@ -351,57 +351,106 @@ S.pendingDeletes=S.pendingDeletes||[];S.files=S.files||{};
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){toast('บันทึกลงเครื่องไม่ได้ พื้นที่เก็บข้อมูลอาจเต็ม','err')}};
 
 /* ---------- Google Apps Script API (Database กลาง) ---------- */
-async function syncGASTasks() {
+async function syncGASData() {
   if (!S.settings.apiUrl) return;
   try {
     const res = await fetch(S.settings.apiUrl);
     const json = await res.json();
     if (json.status === "success" && Array.isArray(json.data)) {
-      // แปลงข้อมูลจาก Google Sheets มาใส่ในรูปแบบ S.tasks
-      S.tasks = json.data.map(item => ({
-        id: item.id,
-        title: item.title || '(ไม่มีหัวข้อ)',
-        note: item.detail || '',
-        status: item.status || 'todo',
-        owner: item.assignee || '',
-        due: item.dueDate || '',
-        priority: item.priority || 'mid',
-        syncCal: item.syncCal === true || item.syncCal === 'true',
-        gcalId: item.gcalId || null,
-        dirty: false
-      }));
+      const fetchedTasks = [];
+      const fetchedMeetings = [];
+
+      json.data.forEach(item => {
+        if (!item.id) return;
+        
+        let meetingExtra = {};
+        let detailText = item.detail || '';
+        
+        if (detailText.startsWith('{')) {
+          try {
+            meetingExtra = JSON.parse(detailText);
+            detailText = meetingExtra.note || '';
+          } catch(e){}
+        }
+
+        if (item.id.startsWith('MEET-')) {
+          fetchedMeetings.push({
+            id: item.id,
+            title: item.title || '(ไม่มีชื่อการประชุม)',
+            date: item.dueDate || todayStr(),
+            start: meetingExtra.start || '09:00',
+            end: meetingExtra.end || '10:00',
+            location: item.assignee || '',
+            note: detailText,
+            gcalId: item.gcalId || null,
+            dirty: false
+          });
+        } else {
+          fetchedTasks.push({
+            id: item.id,
+            title: item.title || '(ไม่มีหัวข้อ)',
+            note: detailText,
+            status: item.status || 'todo',
+            owner: item.assignee || '',
+            due: item.dueDate || '',
+            priority: item.priority || 'mid',
+            syncCal: item.syncCal === true || item.syncCal === 'true',
+            gcalId: item.gcalId || null,
+            dirty: false
+          });
+        }
+      });
+
+      S.tasks = fetchedTasks;
+      S.meetings = fetchedMeetings;
       save();
       renderAll();
     }
   } catch (err) {
-    console.error("Fetch GAS tasks failed:", err);
+    console.error("Fetch GAS data failed:", err);
   }
 }
 
-async function sendTaskToGAS(action, taskData) {
+async function sendToGAS(action, itemType, itemData) {
   if (!S.settings.apiUrl) return;
   setBusy(true);
   try {
+    let payloadData = {};
+    if (itemType === 'meeting') {
+      payloadData = {
+        id: itemData.id,
+        title: itemData.title,
+        detail: JSON.stringify({ note: itemData.note || '', start: itemData.start || '', end: itemData.end || '' }),
+        status: 'meeting',
+        assignee: itemData.location || '',
+        dueDate: itemData.date,
+        priority: 'low',
+        syncCal: false,
+        gcalId: itemData.gcalId
+      };
+    } else {
+      payloadData = {
+        id: itemData.id,
+        title: itemData.title,
+        detail: itemData.note || '',
+        status: itemData.status,
+        assignee: itemData.owner || '',
+        dueDate: itemData.due || '',
+        priority: itemData.priority || 'mid',
+        syncCal: itemData.syncCal,
+        gcalId: itemData.gcalId
+      };
+    }
+
     await fetch(S.settings.apiUrl, {
       method: "POST",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify({
         action: action,
-        data: {
-          id: taskData.id,
-          title: taskData.title,
-          detail: taskData.note,
-          status: taskData.status,
-          assignee: taskData.owner,
-          dueDate: taskData.due,
-          priority: taskData.priority,
-          syncCal: taskData.syncCal,
-          gcalId: taskData.gcalId
-        }
+        data: payloadData
       })
     });
-    // โหลดข้อมูลล่าสุดจาก Google Sheets อีกครั้ง
-    await syncGASTasks();
+    await syncGASData();
   } catch (err) {
     toast('บันทึกลง Google Sheets ไม่สำเร็จ: ' + err.message, 'err');
   } finally {
@@ -537,7 +586,7 @@ async function pullCalendar(){
 let syncing=false;
 async function syncCalendar(manual){
   if(syncing)return;
-  await syncGASTasks(); // ซิงก์ Database กลางก่อนเสมอ
+  await syncGASData(); // ซิงก์ Database กลางก่อนเสมอ
   if(!S.settings.clientId){if(manual)toast('โหมดสาธิต: ใส่ OAuth Client ID ในหน้าตั้งค่าเพื่อเชื่อม Google','');return}
   if(!isConnected()&&!manual)return;
   syncing=true;setBusy(true);
@@ -823,16 +872,15 @@ function taskForm(id){
       Object.assign(old,d,{updatedAt:now,dirty:true});
       taskObj = old;
     } else {
-      taskObj = {id:uid(),createdAt:now,updatedAt:now,gcalId:null,dirty:true,...d};
+      taskObj = {id:'TASK-'+uid(),createdAt:now,updatedAt:now,gcalId:null,dirty:true,...d};
       S.tasks.push(taskObj);
     }
     
     save();closeModal();renderAll();
     toast(old?'บันทึกการแก้ไขแล้ว':'เพิ่มงานแล้ว');
 
-    // ส่งบันทึกไปยัง Google Sheets Database
     if (S.settings.apiUrl) {
-      await sendTaskToGAS(old ? "update" : "add", taskObj);
+      await sendToGAS(old ? "update" : "add", "task", taskObj);
     }
     queueSync();
   });
@@ -851,13 +899,28 @@ function meetingForm(id){
     <label>รายละเอียด<textarea name="note" rows="3" maxlength="2000">${esc(m.note)}</textarea></label>
     <div class="mf"><button type="button" class="btn ghost" data-act="close">ยกเลิก</button><button class="btn">บันทึก</button></div></form>`);
   $('#mAll').addEventListener('change',e=>{$$('#mf input[type=time]').forEach(i=>i.disabled=e.target.checked)});
-  $('#mf').addEventListener('submit',e=>{
+  $('#mf').addEventListener('submit',async e=>{
     e.preventDefault();const f=new FormData(e.target),all=f.get('allDay')==='on';
     const d={title:f.get('title').trim(),date:f.get('date'),start:all?'':f.get('start'),end:all?'':f.get('end'),location:f.get('location').trim(),note:f.get('note').trim()};
     if(!d.title||!d.date)return;
     if(!all&&(!d.start||!d.end||d.end<=d.start)){toast('เวลาสิ้นสุดต้องหลังเวลาเริ่ม','err');return}
-    if(old)Object.assign(old,d,{dirty:true});else S.meetings.push({id:uid(),gcalId:null,dirty:true,...d});
-    save();closeModal();renderAll();queueSync();toast(old?'บันทึกการแก้ไขแล้ว':'เพิ่มการประชุมแล้ว');
+    
+    let meetObj;
+    if(old) {
+      Object.assign(old,d,{dirty:true});
+      meetObj = old;
+    } else {
+      meetObj = {id:'MEET-'+uid(),gcalId:null,dirty:true,...d};
+      S.meetings.push(meetObj);
+    }
+
+    save();closeModal();renderAll();
+    toast(old?'บันทึกการแก้ไขแล้ว':'เพิ่มการประชุมแล้ว');
+
+    if (S.settings.apiUrl) {
+      await sendToGAS(old ? "update" : "add", "meeting", meetObj);
+    }
+    queueSync();
   });
 }
 function delItem(kind,id){
@@ -867,16 +930,16 @@ function delItem(kind,id){
   if(it.gcalId&&!S.pendingDeletes.includes(it.gcalId))S.pendingDeletes.push(it.gcalId);
   save();renderAll();
 
-  if (kind === 'task' && S.settings.apiUrl) {
-    sendTaskToGAS("delete", { id: id });
+  if (S.settings.apiUrl) {
+    sendToGAS("delete", kind, { id: id });
   }
 
   toast(`ลบ "${it.title}" แล้ว`,'',{label:'เลิกทำ',fn:()=>{
     arr.splice(Math.min(i,arr.length),0,it);
     S.pendingDeletes=S.pendingDeletes.filter(x=>x!==it.gcalId);
     it.dirty=true;save();renderAll();
-    if(kind === 'task' && S.settings.apiUrl) {
-      sendTaskToGAS("add", it);
+    if(S.settings.apiUrl) {
+      sendToGAS("add", kind, it);
     }
     queueSync();
   }});
@@ -919,7 +982,7 @@ document.addEventListener('click',async e=>{
       t.status={todo:'doing',doing:'done',done:'todo'}[t.status];t.updatedAt=new Date().toISOString();t.dirty=true;
       save();renderAll();
       if(S.settings.apiUrl) {
-        await sendTaskToGAS("update", t);
+        await sendToGAS("update", "task", t);
       }
       queueSync();break;
     }
@@ -934,7 +997,7 @@ document.addEventListener('click',async e=>{
     case'done-alert':{const a=S.alerts.find(x=>x.id===id);if(a){a.done=true;a.read=true;save();renderAlerts();renderNav();renderStats();toast('บันทึกว่าติดตามแล้ว')}break}
     case'del-alert':S.alerts=S.alerts.filter(x=>x.id!==id);save();renderAlerts();renderNav();renderStats();break;
     case'sync-all':
-      await syncGASTasks();
+      await syncGASData();
       if(S.settings.clientId) {
         await syncCalendar(true);await scanDrive(false);
       } else {
@@ -1008,10 +1071,11 @@ $('#nav').addEventListener('click',e=>{const b=e.target.closest('[data-view]');i
 
 /* auto timers */
 function autoRun(){
-  syncGASTasks();
+  syncGASData();
   if(S.settings.autoSync&&isConnected()&&!document.hidden){syncCalendar(false).then(()=>scanDrive(false))}
 }
-setInterval(autoRun,5*60*1000);
+// ดึงข้อมูลอัตโนมัติทุกๆ 10 วินาทีในเบื้องหลัง เพื่อให้ทุกคนเห็นข้อมูล Real-time ตรงกัน
+setInterval(autoRun,10*1000);
 setInterval(checkDue,60*1000);
 document.addEventListener('visibilitychange',()=>{
   if(document.hidden)return;
@@ -1024,7 +1088,7 @@ document.addEventListener('visibilitychange',()=>{
 renderChrome();renderAll();
 show((location.hash||'').slice(1)||'tasks');
 checkDue();
-syncGASTasks();
+syncGASData();
 if(isConnected())autoRun();
 })();
 </script>
