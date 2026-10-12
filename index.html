@@ -39,8 +39,6 @@ h1,h2,h3{font-family:var(--head);font-weight:600;line-height:1.3}
 .top-in{max-width:1100px;margin:auto;display:flex;align-items:center;gap:14px;padding:14px 16px}
 .logo{width:60px;height:60px;border-radius:50%;flex:none;border:0;background:none;padding:0;overflow:hidden;position:relative}
 .logo svg{width:100%;height:100%;display:block}
-.logo.custom{background:#fff;padding:3px}
-.logo img{width:100%;height:100%;object-fit:contain;display:block}
 .brand{flex:1;min-width:0}
 .brand small{display:block;font:600 13px var(--head);color:var(--yellow)}
 .brand h1{font-size:clamp(18px,4.8vw,27px);color:#fff;font-weight:700}
@@ -54,7 +52,7 @@ h1,h2,h3{font-family:var(--head);font-weight:600;line-height:1.3}
 
 /* nav */
 .nav{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--black);border-top:2px solid var(--yellow);display:flex;padding-bottom:env(safe-area-inset-bottom)}
-.nav button{flex:1;background:none;border:0;color:var(--mute);padding:99px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:3px;font:600 12.5px var(--body);position:relative}
+.nav button{flex:1;background:none;border:0;color:var(--mute);padding:9px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:3px;font:600 12.5px var(--body);position:relative}
 .nav svg{width:23px;height:23px}
 .nav button.on{color:var(--yellow)}
 .nav .badge{position:absolute;top:3px;left:calc(50% + 7px);min-width:19px;height:19px;border-radius:99px;background:var(--yellow);color:#000;font:700 11.5px/19px var(--head);text-align:center;padding:0 5px}
@@ -202,14 +200,15 @@ details.guide code{background:#000;padding:1px 6px;border-radius:5px;color:var(-
 
 <header class="top">
   <div class="top-in">
-    <button class="logo" id="logoBtn" title="แตะเพื่อเปลี่ยนเป็นโลโก้ทางการ" aria-label="เปลี่ยนโลโก้"></button>
-    <input type="file" id="logoFile" accept="image/*" hidden>
+    <div class="logo">
+      <svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" fill="#000" stroke="#ffc400" stroke-width="3"/><path d="M28 14h8l17 36H11z" fill="#ffc400"/><path d="M32 17v33" stroke="#000" stroke-width="2.6" stroke-dasharray="5 4"/><path d="M18 52h28" stroke="#000" stroke-width="1.5"/></svg>
+    </div>
     <div class="brand">
       <small>ห้องวางแผน</small>
       <h1>แขวงทางหลวงนครสวรรค์ที่ 2</h1>
     </div>
     <div class="top-actions">
-      <span class="conn" id="connChip"><i></i><b>โหมดสาธิต</b></span>
+      <span class="conn on" id="connChip"><i></i><b>Database Online</b></span>
       <button class="icon-btn" id="syncBtn" data-act="sync-all" aria-label="ซิงก์ข้อมูลตอนนี้" title="ซิงก์ข้อมูลตอนนี้"></button>
     </div>
   </div>
@@ -224,7 +223,6 @@ details.guide code{background:#000;padding:1px 6px;border-radius:5px;color:var(-
 </nav>
 
 <main>
-  <div id="banner"></div>
   <section class="stats" id="stats"></section>
 
   <section id="view-tasks">
@@ -258,7 +256,7 @@ details.guide code{background:#000;padding:1px 6px;border-radius:5px;color:var(-
   </section>
 
   <section id="view-settings" hidden>
-    <div class="vhead"><h2>ตั้งค่า</h2></div>
+    <div class="vhead"><h2>ตั้งค่าระบบ</h2></div>
     <div class="centerline"></div>
     <div id="settings"></div>
   </section>
@@ -266,20 +264,22 @@ details.guide code{background:#000;padding:1px 6px;border-radius:5px;color:var(-
 
 <div id="modal" class="overlay" hidden></div>
 <div id="toasts" aria-live="polite"></div>
-<input type="file" id="importFile" accept="application/json" hidden>
 
 <script>
 (()=>{
 'use strict';
 
-const KEY='hwn2.planning.v1';
+const API_URL = 'https://script.google.com/macros/s/AKfycbxeHyUZM8o30e1h4CTL0ZFNHvxX4AJRy1qa2CEfEcojSNVN_oQek7M2bRSgQHjURr3uYg/exec';
+const CLIENT_ID = '540842192388-8m160b7lm4m3fh8gjd9b56iu775c88g0.apps.googleusercontent.com';
+const CALENDAR_ID = 'primary';
+const KEY='hwn2.planning.v2';
 const TZ='Asia/Bangkok';
 const DAY=864e5;
 const SCOPES='https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/drive.metadata.readonly';
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const uid=()=>'TASK-'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 const todayStr=()=>new Date().toLocaleDateString('sv-SE',{timeZone:TZ});
 const addDays=(d,n)=>{const t=new Date(d+'T00:00:00Z');t.setUTCDate(t.getUTCDate()+n);return t.toISOString().slice(0,10)};
 const diffDays=(a,b)=>Math.round((new Date(b+'T00:00:00Z')-new Date(a+'T00:00:00Z'))/DAY);
@@ -305,7 +305,6 @@ const I={
   ext:P('<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>'),
   check:P('<path d="M5 12l5 5L20 7"/>')
 };
-const LOGO_SVG=`<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" fill="#000" stroke="#ffc400" stroke-width="3"/><path d="M28 14h8l17 36H11z" fill="#ffc400"/><path d="M32 17v33" stroke="#000" stroke-width="2.6" stroke-dasharray="5 4"/><path d="M18 52h28" stroke="#000" stroke-width="1.5"/></svg>`;
 
 const STAT={todo:'รอดำเนินการ',doing:'กำลังดำเนินการ',done:'เสร็จสิ้น'};
 const PRIO={low:'ปกติ',mid:'สำคัญ',high:'ด่วน'};
@@ -314,63 +313,101 @@ const chips=(m,cur,cnt,act)=>Object.entries(m).map(([k,l])=>`<button class="chip
 const empty=(t,s)=>`<div class="empty" style="grid-column:1/-1"><b>${t}</b>${s||''}</div>`;
 
 function seed(){
-  const t=todayStr(), now=Date.now(), iso=d=>new Date(now-d*DAY).toISOString();
   return{
-    v:1,
-    settings:{apiUrl:'https://script.google.com/macros/s/AKfycbxeHyUZM8o30e1h4CTL0ZFNHvxX4AJRy1qa2CEfEcojSNVN_oQek7M2bRSgQHjURr3uYg/exec',clientId:'',calendarId:'primary',folders:[],followUpDays:7,autoSync:true,logo:null},
-    tasks:[
-      {id:uid(),title:'จัดทำแผนงานซ่อมบำรุงทางหลวง ปีงบประมาณ 2570',owner:'เจ้าหน้าที่แผนงาน 1',due:addDays(t,5),priority:'high',status:'doing',note:'รวบรวมข้อมูลความต้องการจากหมวดการทาง',syncCal:false,gcalId:null,dirty:false,demo:true},
-      {id:uid(),title:'สรุปผลการเบิกจ่ายงบประมาณเดือนกันยายน',owner:'เจ้าหน้าที่แผนงาน 2',due:addDays(t,-2),priority:'high',status:'doing',note:'',syncCal:false,gcalId:null,dirty:false,demo:true},
-      {id:uid(),title:'รวบรวมสถิติอุบัติเหตุรายไตรมาส',owner:'เจ้าหน้าที่แผนงาน 1',due:addDays(t,12),priority:'mid',status:'todo',note:'',syncCal:false,gcalId:null,dirty:false,demo:true},
-      {id:uid(),title:'ตรวจสอบข้อมูลทะเบียนทางหลวงในความรับผิดชอบ',owner:'เจ้าหน้าที่แผนงาน 3',due:addDays(t,20),priority:'low',status:'todo',note:'',syncCal:false,gcalId:null,dirty:false,demo:true},
-      {id:uid(),title:'ส่งรายงานความก้าวหน้างานประจำเดือน',owner:'เจ้าหน้าที่แผนงาน 2',due:addDays(t,-5),priority:'mid',status:'done',note:'',syncCal:false,gcalId:null,dirty:false,demo:true}
-    ],
-    meetings:[
-      {id:uid(),title:'ประชุมติดตามงานประจำสัปดาห์',date:addDays(t,1),start:'09:00',end:'10:30',location:'ห้องประชุมแขวงทางหลวง',note:'',gcalId:null,dirty:false,demo:true},
-      {id:uid(),title:'ประชุมชี้แจงแผนงานปีงบประมาณ 2570',date:addDays(t,4),start:'13:30',end:'15:30',location:'ห้องประชุมใหญ่',note:'',gcalId:null,dirty:false,demo:true},
-      {id:uid(),title:'ประชุมหัวหน้าหมวดการทาง',date:addDays(t,9),start:'10:00',end:'12:00',location:'',note:'',gcalId:null,dirty:false,demo:true},
-      {id:uid(),title:'ประชุมสรุปผลงานรายเดือน',date:addDays(t,-3),start:'09:30',end:'11:00',location:'ห้องประชุมแขวงทางหลวง',note:'',gcalId:null,dirty:false,demo:true}
-    ],
-    files:{},
-    alerts:[
-      {id:uid(),key:'d1',fileId:'d1',name:'แผนงานซ่อมบำรุง_2570_ฉบับร่าง.docx',kind:'updated',at:iso(1.2),by:'เจ้าหน้าที่แผนงาน 1',link:'https://drive.google.com/',mime:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',folder:'โฟลเดอร์แผนงาน',read:false,done:false,notified:true,demo:true},
-      {id:uid(),key:'d2',fileId:'d2',name:'สรุปงบประมาณ_ก.ย.69.xlsx',kind:'created',at:iso(3.4),by:'เจ้าหน้าที่แผนงาน 2',link:'https://drive.google.com/',mime:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',folder:'โฟลเดอร์แผนงาน',read:true,done:false,notified:true,demo:true},
-      {id:uid(),key:'d3',fileId:'d3',name:'รายงานอุบัติเหตุ_ไตรมาส3.pdf',kind:'updated',at:iso(6.3),by:'เจ้าหน้าที่แผนงาน 3',link:'https://drive.google.com/',mime:'application/pdf',folder:'โฟลเดอร์สถิติ',read:false,done:false,notified:true,demo:true},
-      {id:uid(),key:'d4',fileId:'d4',name:'ตารางโครงการปีงบประมาณ 2570',kind:'created',at:iso(8.5),by:'เจ้าหน้าที่แผนงาน 1',link:'https://drive.google.com/',mime:'application/vnd.google-apps.spreadsheet',folder:'โฟลเดอร์แผนงาน',read:true,done:false,notified:true,demo:true}
-    ],
-    pendingDeletes:[],lastCalSync:null,lastDriveScan:null,wasConnected:false
+    v:2,
+    settings:{followUpDays:7,autoSync:true},
+    tasks:[], meetings:[], alerts:[],
+    pendingDeletes:[],lastCalSync:null,lastDriveScan:null,wasLoaded:false
   };
 }
 let S;
 try{S=JSON.parse(localStorage.getItem(KEY)||'null')}catch(e){S=null}
-if(!S||!S.settings)S=seed();
-S.settings.apiUrl = S.settings.apiUrl || 'https://script.google.com/macros/s/AKfycbxeHyUZM8o30e1h4CTL0ZFNHvxX4AJRy1qa2CEfEcojSNVN_oQek7M2bRSgQHjURr3uYg/exec';
-S.pendingDeletes=S.pendingDeletes||[];S.files=S.files||{};
-const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){toast('บันทึกลงเครื่องไม่ได้ พื้นที่เก็บข้อมูลอาจเต็ม','err')}};
+if(!S||S.v!==2)S=seed();
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+
+function toast(msg,kind,act){
+  const w=$('#toasts'),el=document.createElement('div');
+  el.className='toast '+(kind||'');
+  const sp=document.createElement('span');sp.textContent=msg;el.appendChild(sp);
+  if(act){const b=document.createElement('button');b.textContent=act.label;b.onclick=()=>{act.fn();el.remove()};el.appendChild(b)}
+  w.appendChild(el);setTimeout(()=>el.remove(),act?7000:kind==='err'?7000:4200);
+}
+function openModal(html){
+  const m=$('#modal');m.innerHTML=`<div class="sheet" role="dialog" aria-modal="true">${html}</div>`;m.hidden=false;
+  const f=$('input:not([type=checkbox]),textarea',m);if(f&&!f.value)f.focus();
+}
+function closeModal(){const m=$('#modal');m.hidden=true;m.innerHTML=''}
+$('#modal').addEventListener('mousedown',e=>{if(e.target.id==='modal')closeModal()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#modal').hidden)closeModal()});
+
+function notifyBrowser(title,body){
+  if('Notification' in window&&Notification.permission==='granted'){try{new Notification(title,{body,tag:'hwn2'})}catch(e){}}
+}
+
+let token=null,tokExp=0,gisP=null;
+try{const t=JSON.parse(sessionStorage.getItem('hwn2.tok')||'null');if(t&&t.exp>Date.now()){token=t.v;tokExp=t.exp}}catch(e){}
+const isConnected=()=>!!token&&Date.now()<tokExp-30000;
+function loadGIS(){
+  if(window.google&&google.accounts&&google.accounts.oauth2)return Promise.resolve();
+  if(gisP)return gisP;
+  gisP=new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';s.onload=res;s.onerror=()=>{gisP=null;rej(new Error('โหลดระบบเข้าสู่ระบบของ Google ไม่ได้ ตรวจสอบอินเทอร์เน็ต'))};document.head.appendChild(s)});
+  return gisP;
+}
+async function getToken(){
+  if(isConnected())return token;
+  await loadGIS();
+  return new Promise((res,rej)=>{
+    const c=google.accounts.oauth2.initTokenClient({
+      client_id:CLIENT_ID,scope:SCOPES,
+      callback:r=>{
+        if(r.error){rej(new Error(r.error_description||r.error));return}
+        token=r.access_token;tokExp=Date.now()+(r.expires_in||3600)*1000;
+        try{sessionStorage.setItem('hwn2.tok',JSON.stringify({v:token,exp:tokExp}))}catch(e){}
+        renderSettings();res(token);
+      },
+      error_callback:e=>rej(new Error(e.type==='popup_closed'?'ปิดหน้าต่างเข้าสู่ระบบก่อนเสร็จ':(e.message||e.type||'เชื่อมต่อไม่สำเร็จ')))
+    });
+    c.requestAccessToken({prompt:''});
+  });
+}
+async function gfetch(url,opt={},retry=true){
+  const tk=await getToken();
+  const r=await fetch(url,{...opt,headers:{'Authorization':'Bearer '+tk,'Content-Type':'application/json',...(opt.headers||{})}});
+  if(r.status===401&&retry){token=null;tokExp=0;try{sessionStorage.removeItem('hwn2.tok')}catch(e){}return gfetch(url,opt,false)}
+  if(r.status===204)return null;
+  if(r.status===404||r.status===410)return{__gone:true};
+  const j=await r.json().catch(()=>null);
+  if(!r.ok)throw new Error((j&&j.error&&j.error.message)||('รหัสข้อผิดพลาด '+r.status));
+  return j;
+}
+
+let isFetching = false;
+function setBusy(b){$('#syncBtn').classList.toggle('spin',b);$('#scanBtn').classList.toggle('spin',b)}
 
 async function syncGASData() {
-  if (!S.settings.apiUrl) return;
+  if (isFetching) return;
+  isFetching = true;
+  setBusy(true);
   try {
-    const res = await fetch(S.settings.apiUrl);
+    const res = await fetch(API_URL);
     const json = await res.json();
     if (json.status === "success" && Array.isArray(json.data)) {
+      const oldMeetingIds = new Set(S.meetings.map(m => m.id));
+      let newMeetingsCount = 0;
+      let newMeetingTitle = "";
+
       const fetchedTasks = [];
       const fetchedMeetings = [];
       const fetchedAlerts = [];
 
       json.data.forEach(item => {
         if (!item.id) return;
-        
         let extraData = {};
-        let detailText = item.detail || '';
-        
-        if (detailText.startsWith('{')) {
-          try {
-            extraData = JSON.parse(detailText);
-          } catch(e){}
+        if (item.detail && item.detail.startsWith('{')) {
+          try { extraData = JSON.parse(item.detail); } catch(e){}
         }
 
-        if (item.id.startsWith('MEET-')) {
+        if (item.id.startsWith('MEET-') || item.status === 'meeting') {
           fetchedMeetings.push({
             id: item.id,
             title: item.title || '(ไม่มีชื่อการประชุม)',
@@ -382,16 +419,22 @@ async function syncGASData() {
             gcalId: item.gcalId || null,
             dirty: false
           });
+          // แจ้งเตือนเมื่อมีการเพิ่มการประชุมเข้ามาใหม่
+          if (!oldMeetingIds.has(item.id) && S.wasLoaded) {
+            newMeetingsCount++;
+            newMeetingTitle = item.title;
+          }
         } else if (item.id.startsWith('ALERT-') || item.status === 'alert') {
           fetchedAlerts.push({
             id: item.id,
-            key: extraData.key || (item.id + '|' + (extraData.at || '')),
+            key: extraData.key || item.id,
             fileId: extraData.fileId || item.id,
             name: item.title || '(ไม่มีชื่อไฟล์)',
             kind: extraData.kind || 'updated',
             at: extraData.at || new Date().toISOString(),
             by: extraData.by || item.assignee || '',
             link: extraData.link || '',
+            folderLink: extraData.folderLink || '',
             mime: extraData.mime || '',
             folder: extraData.folder || '',
             read: extraData.read === true || extraData.read === 'true',
@@ -402,7 +445,7 @@ async function syncGASData() {
           fetchedTasks.push({
             id: item.id,
             title: item.title || '(ไม่มีหัวข้อ)',
-            note: extraData.note || detailText,
+            note: extraData.note || item.detail || '',
             status: item.status || 'todo',
             owner: item.assignee || '',
             due: item.dueDate || '',
@@ -414,21 +457,27 @@ async function syncGASData() {
         }
       });
 
+      // อัปเดตข้อมูลทั้งหมดจากส่วนกลาง (Single Source of Truth)
       S.tasks = fetchedTasks;
       S.meetings = fetchedMeetings;
-      if (fetchedAlerts.length > 0) {
-        S.alerts = fetchedAlerts;
-      }
+      S.alerts = fetchedAlerts;
+      S.wasLoaded = true;
       save();
       renderAll();
+
+      if (newMeetingsCount > 0) {
+        notifyBrowser("มีการประชุมใหม่ถูกเพิ่มเข้ามา", newMeetingsCount === 1 ? newMeetingTitle : `มีการประชุมใหม่ ${newMeetingsCount} รายการ`);
+      }
     }
   } catch (err) {
     console.error("Fetch GAS data failed:", err);
+  } finally {
+    isFetching = false;
+    setBusy(false);
   }
 }
 
 async function sendToGAS(action, itemType, itemData) {
-  if (!S.settings.apiUrl) return;
   setBusy(true);
   try {
     let payloadData = {};
@@ -455,6 +504,7 @@ async function sendToGAS(action, itemType, itemData) {
           at: itemData.at,
           by: itemData.by,
           link: itemData.link,
+          folderLink: itemData.folderLink,
           mime: itemData.mime,
           folder: itemData.folder,
           read: itemData.read,
@@ -481,7 +531,7 @@ async function sendToGAS(action, itemType, itemData) {
       };
     }
 
-    await fetch(S.settings.apiUrl, {
+    await fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify({
@@ -489,68 +539,14 @@ async function sendToGAS(action, itemType, itemData) {
         data: payloadData
       })
     });
-    await syncGASData();
   } catch (err) {
-    toast('บันทึกลง Google Sheets ไม่สำเร็จ: ' + err.message, 'err');
+    toast('บันทึกข้อมูลส่วนกลางไม่สำเร็จ: ' + err.message, 'err');
   } finally {
     setBusy(false);
   }
 }
 
-function toast(msg,kind,act){
-  const w=$('#toasts'),el=document.createElement('div');
-  el.className='toast '+(kind||'');
-  const sp=document.createElement('span');sp.textContent=msg;el.appendChild(sp);
-  if(act){const b=document.createElement('button');b.textContent=act.label;b.onclick=()=>{act.fn();el.remove()};el.appendChild(b)}
-  w.appendChild(el);setTimeout(()=>el.remove(),act?7000:kind==='err'?7000:4200);
-}
-function openModal(html){
-  const m=$('#modal');m.innerHTML=`<div class="sheet" role="dialog" aria-modal="true">${html}</div>`;m.hidden=false;
-  const f=$('input:not([type=checkbox]),textarea',m);if(f&&!f.value)f.focus();
-}
-function closeModal(){const m=$('#modal');m.hidden=true;m.innerHTML=''}
-$('#modal').addEventListener('mousedown',e=>{if(e.target.id==='modal')closeModal()});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#modal').hidden)closeModal()});
-
-let token=null,tokExp=0,gisP=null;
-try{const t=JSON.parse(sessionStorage.getItem('hwn2.tok')||'null');if(t&&t.exp>Date.now()){token=t.v;tokExp=t.exp}}catch(e){}
-const isConnected=()=>!!token&&Date.now()<tokExp-30000;
-function loadGIS(){
-  if(window.google&&google.accounts&&google.accounts.oauth2)return Promise.resolve();
-  if(gisP)return gisP;
-  gisP=new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';s.onload=res;s.onerror=()=>{gisP=null;rej(new Error('โหลดระบบเข้าสู่ระบบของ Google ไม่ได้ ตรวจสอบอินเทอร์เน็ต'))};document.head.appendChild(s)});
-  return gisP;
-}
-async function getToken(){
-  if(isConnected())return token;
-  if(!S.settings.clientId)throw new Error('ยังไม่ได้ใส่ OAuth Client ID ในหน้าตั้งค่า');
-  await loadGIS();
-  return new Promise((res,rej)=>{
-    const c=google.accounts.oauth2.initTokenClient({
-      client_id:S.settings.clientId,scope:SCOPES,
-      callback:r=>{
-        if(r.error){rej(new Error(r.error_description||r.error));return}
-        token=r.access_token;tokExp=Date.now()+(r.expires_in||3600)*1000;
-        try{sessionStorage.setItem('hwn2.tok',JSON.stringify({v:token,exp:tokExp}))}catch(e){}
-        S.wasConnected=true;save();renderConn();res(token);
-      },
-      error_callback:e=>rej(new Error(e.type==='popup_closed'?'ปิดหน้าต่างเข้าสู่ระบบก่อนเสร็จ':(e.message||e.type||'เชื่อมต่อไม่สำเร็จ')))
-    });
-    c.requestAccessToken({prompt:S.wasConnected?'':'consent'});
-  });
-}
-async function gfetch(url,opt={},retry=true){
-  const tk=await getToken();
-  const r=await fetch(url,{...opt,headers:{'Authorization':'Bearer '+tk,'Content-Type':'application/json',...(opt.headers||{})}});
-  if(r.status===401&&retry){token=null;tokExp=0;try{sessionStorage.removeItem('hwn2.tok')}catch(e){}return gfetch(url,opt,false)}
-  if(r.status===204)return null;
-  if(r.status===404||r.status===410)return{__gone:true};
-  const j=await r.json().catch(()=>null);
-  if(!r.ok)throw new Error((j&&j.error&&j.error.message)||('รหัสข้อผิดพลาด '+r.status));
-  return j;
-}
-
-const calUrl=(p='')=>'https://www.googleapis.com/calendar/v3/calendars/'+encodeURIComponent(S.settings.calendarId||'primary')+'/events'+p;
+const calUrl=(p='')=>'https://www.googleapis.com/calendar/v3/calendars/'+encodeURIComponent(CALENDAR_ID)+'/events'+p;
 const TASK_PREFIX=/^\[(งาน|งานเสร็จ)\]\s*/;
 function meetingBody(m){
   const b={summary:m.title,location:m.location||'',description:m.note||'',extendedProperties:{private:{hwn2:'meeting'}}};
@@ -568,7 +564,6 @@ async function upsertRemote(item,body){
   if(!r)r=await gfetch(calUrl(''),{method:'POST',body:JSON.stringify(body)});
   item.gcalId=r.id;item.remoteUpdated=r.updated;item.dirty=false;
   if(r.htmlLink)item.link=r.htmlLink;
-  save();
 }
 async function pushCalendar(){
   for(const id of [...S.pendingDeletes]){
@@ -578,7 +573,7 @@ async function pushCalendar(){
   for(const m of S.meetings.filter(x=>x.dirty))await upsertRemote(m,meetingBody(m));
   for(const t of S.tasks){
     if(t.syncCal&&t.due){if(t.dirty||!t.gcalId)await upsertRemote(t,taskBody(t))}
-    else if(!t.syncCal&&t.gcalId){await gfetch(calUrl('/'+encodeURIComponent(t.gcalId)),{method:'DELETE'});t.gcalId=null;t.remoteUpdated=null;save()}
+    else if(!t.syncCal&&t.gcalId){await gfetch(calUrl('/'+encodeURIComponent(t.gcalId)),{method:'DELETE'});t.gcalId=null;t.remoteUpdated=null;}
   }
 }
 function evToMeeting(ev){
@@ -605,123 +600,111 @@ async function pullCalendar(){
     if(p.hwn2==='task'){
       const t=S.tasks.find(x=>x.gcalId===ev.id)||(p.taskId&&S.tasks.find(x=>x.id===p.taskId));
       const f={title:(ev.summary||'').replace(TASK_PREFIX,'')||'(ไม่มีชื่อ)',due:ev.start.date||partsBKK(ev.start.dateTime).date,note:ev.description||'',owner:p.owner||'',priority:PRIO[p.priority]?p.priority:'mid',status:STAT[p.status]?p.status:'todo',gcalId:ev.id,syncCal:true,remoteUpdated:ev.updated,dirty:false};
-      if(!t)S.tasks.push({id:p.taskId||uid(),createdAt:ev.created||new Date().toISOString(),updatedAt:ev.updated,...f});
-      else if(t.remoteUpdated!==ev.updated)Object.assign(t,f,{updatedAt:ev.updated});
+      if(!t){ S.tasks.push({id:p.taskId||'TASK-'+uid(),createdAt:ev.created||new Date().toISOString(),updatedAt:ev.updated,...f}); t=S.tasks[S.tasks.length-1]; t.dirty=true; }
+      else if(t.remoteUpdated!==ev.updated) { Object.assign(t,f,{updatedAt:ev.updated, dirty:true}); }
     }else{
       const m=S.meetings.find(x=>x.gcalId===ev.id),f=evToMeeting(ev);
-      if(!m)S.meetings.push({id:uid(),...f});
-      else if(m.remoteUpdated!==ev.updated)Object.assign(m,f);
+      if(!m){ S.meetings.push({id:'MEET-'+uid(),...f}); S.meetings[S.meetings.length-1].dirty=true; }
+      else if(m.remoteUpdated!==ev.updated){ Object.assign(m,f,{dirty:true}); }
     }
   }
-  const inWin=d=>d>=min&&d<=max;
-  S.meetings=S.meetings.filter(m=>!(m.gcalId&&!m.dirty&&inWin(m.date)&&!seen.has(m.gcalId)));
-  let unlinked=0;
-  S.tasks.forEach(t=>{if(t.gcalId&&!t.dirty&&t.due&&inWin(t.due)&&!seen.has(t.gcalId)){t.gcalId=null;t.syncCal=false;t.remoteUpdated=null;unlinked++}});
-  if(unlinked)toast(`มี ${unlinked} งานถูกลบจากปฏิทิน ระบบยกเลิกการเชื่อมโยงแล้ว งานยังอยู่ในแอป`);
 }
 let syncing=false;
 async function syncCalendar(manual){
   if(syncing)return;
-  await syncGASData();
-  if(!S.settings.clientId){if(manual)toast('โหมดสาธิต: ใส่ OAuth Client ID ในหน้าตั้งค่าเพื่อเชื่อม Google','');return}
-  if(!isConnected()&&!manual)return;
+  if(!isConnected()&&!manual){return;}
   syncing=true;setBusy(true);
   try{
-    await getToken();await pushCalendar();await pullCalendar();
+    await getToken();
+    await syncGASData(); // Load fresh data before syncing
+    await pushCalendar();
+    await pullCalendar();
+    
+    // Save any newly created Calendar events back to GAS
+    for(const m of S.meetings) if(m.dirty){ await sendToGAS("update", "meeting", m); m.dirty=false; }
+    for(const t of S.tasks) if(t.dirty){ await sendToGAS("update", "task", t); t.dirty=false; }
+    
     S.lastCalSync=new Date().toISOString();save();renderAll();
-    if(manual)toast('ซิงก์ข้อมูลทั้งหมดเรียบร้อย');
+    if(manual)toast('ซิงก์ปฏิทินเรียบร้อย');
   }catch(e){toast('ซิงก์ปฏิทินไม่สำเร็จ: '+e.message,'err')}
   finally{syncing=false;setBusy(false)}
 }
-let qt;
-function queueSync(ms=900){clearTimeout(qt);qt=setTimeout(()=>{if(isConnected())syncCalendar(false)},ms)}
-function setBusy(b){$('#syncBtn').classList.toggle('spin',b);$('#scanBtn').classList.toggle('spin',b)}
 
-const FOLDER='application/vnd.google-apps.folder';
-async function listFolder(id){
-  let out=[],pt='';
-  do{
-    const q=new URLSearchParams({q:`'${id}' in parents and trashed=false`,fields:'nextPageToken,files(id,name,mimeType,createdTime,modifiedTime,webViewLink,lastModifyingUser(displayName))',pageSize:'200',supportsAllDrives:'true',includeItemsFromAllDrives:'true'});
-    if(pt)q.set('pageToken',pt);
-    const r=await gfetch('https://www.googleapis.com/drive/v3/files?'+q);
-    if(!r||r.__gone)throw new Error('ไม่พบโฟลเดอร์ ตรวจสอบลิงก์และสิทธิ์การเข้าถึง');
-    out=out.concat(r.files||[]);pt=r.nextPageToken||'';
-  }while(pt);
-  return out;
-}
-function addAlert(x,kind,folder){
-  const key=x.id+'|'+x.modifiedTime;
-  if(S.alerts.some(a=>a.key===key))return 0;
-  S.alerts=S.alerts.filter(a=>!(a.fileId===x.id&&!a.done));
-  const newAlert = {
-    id: 'ALERT-' + uid(),
-    key,
-    fileId: x.id,
-    name: x.name,
-    kind,
-    at: x.modifiedTime,
-    by: (x.lastModifyingUser && x.lastModifyingUser.displayName) || '',
-    link: x.webViewLink || '',
-    mime: x.mimeType,
-    folder,
-    read: false,
-    done: false,
-    notified: false
-  };
-  S.alerts.unshift(newAlert);
-  if (S.settings.apiUrl) {
-    sendToGAS('add', 'alert', newAlert);
-  }
-  return 1;
-}
 let scanning=false;
 async function scanDrive(manual){
-  if(!S.settings.clientId){if(manual)toast('โหมดสาธิต: ใส่ OAuth Client ID ในหน้าตั้งค่าเพื่อเชื่อม Google');return}
-  if(!S.settings.folders.length){if(manual)toast('ยังไม่ได้เพิ่มโฟลเดอร์ที่จะติดตาม ไปที่หน้าตั้งค่า');return}
-  if(!isConnected()&&!manual)return;
+  if(!isConnected()){if(manual)toast('กรุณาเข้าสู่ระบบในหน้าตั้งค่าเพื่อสแกนไดร์ฟ');return}
   if(scanning)return;
   scanning=true;setBusy(true);
   try{
     await getToken();
+    
+    // ค้นหาไฟล์ทั้งหมดใน Drive ที่ถูกแก้ไขภายในระยะเวลาที่กำหนด
+    const daysLimit = S.settings.followUpDays;
+    const xDaysAgo = new Date(Date.now() - daysLimit * DAY).toISOString();
+    const q = `modifiedTime > '${xDaysAgo}' and trashed = false and mimeType != 'application/vnd.google-apps.folder'`;
+    
+    let out=[],pt='';
+    do {
+      const params = new URLSearchParams({
+        q: q,
+        fields: 'nextPageToken,files(id,name,mimeType,createdTime,modifiedTime,webViewLink,lastModifyingUser(displayName),parents)',
+        pageSize: '100',
+        orderBy: 'modifiedTime desc'
+      });
+      if(pt) params.set('pageToken',pt);
+      const r = await gfetch('https://www.googleapis.com/drive/v3/files?'+params);
+      if(!r) break;
+      out = out.concat(r.files||[]);
+      pt = r.nextPageToken||'';
+    } while(pt && out.length < 500); // ป้องกันดึงมาเยอะเกินไป (ดึงไม่เกิน 500 ไฟล์ล่าสุด)
+
     let added=0;
-    for(const f of S.settings.folders){
-      const all=[],queue=[{id:f.id,d:0}];
-      while(queue.length&&all.length<1500){
-        const{id,d}=queue.shift();
-        for(const x of await listFolder(id)){if(x.mimeType===FOLDER){if(d<3)queue.push({id:x.id,d:d+1})}else all.push(x)}
-      }
-      const prev=S.files[f.id],snap={};
-      for(const x of all){
-        snap[x.id]=x.modifiedTime;
-        let kind=null;
-        if(!prev){if(Date.now()-new Date(x.modifiedTime)<S.settings.followUpDays*DAY)kind=Math.abs(new Date(x.modifiedTime)-new Date(x.createdTime))<6e4?'created':'updated'}
-        else if(!(x.id in prev))kind='created';
-        else if(prev[x.id]!==x.modifiedTime)kind='updated';
-        if(kind)added+=addAlert(x,kind,f.label);
-      }
-      S.files[f.id]=snap;
+    for(const x of out){
+      const key = x.id + '|' + x.modifiedTime;
+      // ตรวจสอบว่ามีอยู่แล้วหรือไม่
+      if(S.alerts.some(a=>a.key===key)) continue;
+
+      let kind = Math.abs(new Date(x.modifiedTime)-new Date(x.createdTime)) < 6e4 ? 'created':'updated';
+      let folderLink = x.parents && x.parents.length > 0 ? `https://drive.google.com/drive/folders/${x.parents[0]}` : '';
+      
+      const newAlert = {
+        id: 'ALERT-' + uid(),
+        key,
+        fileId: x.id,
+        name: x.name,
+        kind,
+        at: x.modifiedTime,
+        by: (x.lastModifyingUser&&x.lastModifyingUser.displayName)||'',
+        link: x.webViewLink||'',
+        folderLink: folderLink,
+        mime: x.mimeType,
+        folder: 'ไดร์ฟของฉัน', // ไม่ระบุโฟลเดอร์เจาะจงแล้ว
+        read: false,
+        done: false,
+        notified: false
+      };
+      
+      // ลบเวอร์ชันเก่าของไฟล์นี้ที่ยังไม่ได้ติดตามออก
+      S.alerts = S.alerts.filter(a => !(a.fileId === x.id && !a.done));
+      S.alerts.unshift(newAlert);
+      
+      await sendToGAS('add', 'alert', newAlert);
+      added++;
     }
-    S.alerts=S.alerts.slice(0,300);
-    S.lastDriveScan=new Date().toISOString();save();renderAll();
-    if(added){toast(`พบไฟล์ใหม่หรือมีการแก้ไข ${added} รายการ`);notifyBrowser('ไฟล์ใน Drive มีการเปลี่ยนแปลง',`${added} รายการ เปิดดูในแอปได้เลย`)}
-    else if(manual)toast('สแกนแล้ว ไม่มีไฟล์ใหม่');
+
+    S.alerts=S.alerts.slice(0,300); // เก็บไว้ไม่เกิน 300 การแจ้งเตือน
+    S.lastDriveScan=new Date().toISOString();
+    save();
+    await syncGASData();
+    
+    if(added){toast(`พบการแก้ไขไฟล์ใหม่ ${added} รายการ`);}
+    else if(manual){toast('สแกนเสร็จสิ้น ไม่มีไฟล์อัปเดตเพิ่มเติม');}
   }catch(e){toast('สแกน Drive ไม่สำเร็จ: '+e.message,'err')}
   finally{scanning=false;setBusy(false)}
 }
+
 const dueAt=a=>new Date(a.at).getTime()+S.settings.followUpDays*DAY;
 const isDue=a=>!a.done&&Date.now()>=dueAt(a);
-function notifyBrowser(title,body){
-  if('Notification' in window&&Notification.permission==='granted'){try{new Notification(title,{body,tag:'hwn2'})}catch(e){}}
-}
-function checkDue(){
-  const fresh=S.alerts.filter(a=>isDue(a)&&!a.notified);
-  if(!fresh.length)return;
-  fresh.forEach(a=>a.notified=true);save();
-  const n=S.settings.followUpDays;
-  toast(`ครบ ${n} วันแล้ว ต้องติดตามไฟล์ ${fresh.length} รายการ`);
-  notifyBrowser(`ครบ ${n} วัน ต้องติดตามไฟล์ ${fresh.length} รายการ`,fresh.slice(0,3).map(a=>a.name).join(', '));
-  renderAlerts();renderNav();renderStats();
-}
 
 let tf={q:'',st:'all'},mf='up',af='all';
 const views=['tasks','meetings','alerts','settings'];
@@ -737,27 +720,13 @@ function renderChrome(){
   $('#syncBtn').innerHTML=I.sync;
   $('#addTaskBtn').innerHTML=I.plus+'เพิ่มงาน';
   $('#addMeetBtn').innerHTML=I.plus+'เพิ่มการประชุม';
-  $('#scanBtn').innerHTML=I.sync+'สแกน Drive ตอนนี้';
+  $('#scanBtn').innerHTML=I.sync+'สแกนไฟล์ในไดร์ฟ';
   const lab={tasks:[I.list,'งาน'],meetings:[I.cal,'ประชุม'],alerts:[I.bell,'ไฟล์'],settings:[I.gear,'ตั้งค่า']};
   $$('#nav button').forEach(b=>{const[i,l]=lab[b.dataset.view];b.innerHTML=i+'<span>'+l+'</span><span class="badge" hidden></span>'});
 }
 function renderNav(){
   const n=S.alerts.filter(a=>!a.done&&(!a.read||isDue(a))).length;
   const b=$('#nav [data-view="alerts"] .badge');b.textContent=n;b.hidden=!n;
-}
-function renderLogo(){
-  const b=$('#logoBtn'),l=S.settings.logo;
-  if(l&&/^data:image\//.test(l)){b.classList.add('custom');b.innerHTML=`<img src="${esc(l)}" alt="โลโก้">`}
-  else{b.classList.remove('custom');b.innerHTML=LOGO_SVG}
-}
-function renderConn(){
-  let cls='',txt='โหมดสาธิต';
-  if(S.settings.apiUrl||S.settings.clientId){cls='on';txt='เปิดใช้งานฐานข้อมูลกลางแล้ว'}
-  const c=$('#connChip');c.className='conn '+cls;$('b',c).textContent=txt;
-  let h='';
-  if(!S.settings.apiUrl)h=`<div class="banner"><div><b>โหมดสาธิต</b> ข้อมูลบันทึกเฉพาะในเบราว์เซอร์นี้ กรุณาใส่ Web App URL เพื่อใช้ Database กลางร่วมกัน</div><button class="btn sm" data-act="goto" data-view="settings">ตั้งค่าเชื่อมต่อ</button></div>`;
-  else if(!isConnected())h=`<div class="banner"><div><b>ยังไม่ได้เชื่อมต่อ Google Calendar</b> คุณยังใช้ระบบ Task กลางได้ และสามารถเชื่อม Google เพื่อซิงก์ปฏิทิน</div><button class="btn sm" data-act="connect">เชื่อมต่อ Google Calendar</button></div>`;
-  $('#banner').innerHTML=h;
 }
 function renderStats(){
   const t=todayStr();
@@ -802,10 +771,10 @@ function renderTasks(){
 function renderMeetings(){
   const t=todayStr();
   $('#m-chips').innerHTML=chips({up:'กำลังจะถึง',past:'ที่ผ่านมา'},mf,null,'f-meet');
-  $('#m-sync').textContent=S.lastCalSync?'ซิงก์ล่าสุด '+ago(S.lastCalSync):(S.settings.clientId?'ยังไม่เคยซิงก์':'');
+  $('#m-sync').textContent=S.lastCalSync?'ซิงก์ปฏิทินล่าสุด '+ago(S.lastCalSync):'';
   let list=S.meetings.filter(m=>mf==='up'?m.date>=t:m.date<t);
   list.sort((a,b)=>(mf==='up'?1:-1)*(a.date+a.start).localeCompare(b.date+b.start));
-  if(!list.length){$('#m-list').innerHTML=empty(mf==='up'?'ไม่มีการประชุมที่กำลังจะถึง':'ไม่มีการประชุมที่ผ่านมา','กดปุ่ม "เพิ่มการประชุม" หรือซิงก์จาก Google Calendar');return}
+  if(!list.length){$('#m-list').innerHTML=empty(mf==='up'?'ไม่มีการประชุมที่กำลังจะถึง':'ไม่มีการประชุมที่ผ่านมา','กดปุ่ม "เพิ่มการประชุม" เพื่อสร้างตารางนัดหมาย');return}
   let h='',cur='';
   for(const m of list){
     if(m.date!==cur){
@@ -817,7 +786,7 @@ function renderMeetings(){
     h+=`<article class="card meet" data-id="${m.id}">
       <div class="mtime">${m.start?esc(m.start)+(m.end&&m.end!==m.start?'-'+esc(m.end):''):'ทั้งวัน'}</div>
       <div class="mbody"><h3>${esc(m.title)}</h3>
-        <div class="meta">${m.location?`<span>${I.pin}${esc(m.location)}</span>`:''}${m.gcalId&&!m.dirty?`<span>${I.cal}จาก Google Calendar</span>`:`<span class="pend">${I.sync}รอซิงก์ขึ้นปฏิทิน</span>`}</div>
+        <div class="meta">${m.location?`<span>${I.pin}${esc(m.location)}</span>`:''}${m.gcalId&&!m.dirty?`<span>${I.cal}จาก Google Calendar</span>`:m.syncCal?`<span class="pend">${I.sync}รอซิงก์ขึ้นปฏิทิน</span>`:''}</div>
         ${m.note?`<div class="meta" style="margin-top:4px">${esc(m.note.slice(0,160))}</div>`:''}
       </div>
       <div class="mact">
@@ -847,11 +816,12 @@ function alertCard(a){
     <div class="abody">
       <div><span class="tag ${a.kind}">${a.kind==='created'?'ไฟล์ใหม่':'อัปเดตไฟล์'}</span>${due?'<span class="tag duetag">ถึงกำหนดติดตาม</span>':''}</div>
       <h3>${esc(a.name)}</h3>
-      <div class="meta"><span>${I.clock}${ago(a.at)} (${fmtDate(pb.date)} ${pb.time} น.)</span>${a.by?`<span>${I.user}${esc(a.by)}</span>`:''}${a.folder?`<span>${I.folder}${esc(a.folder)}</span>`:''}</div>
+      <div class="meta"><span>${I.clock}${ago(a.at)} (${fmtDate(pb.date)} ${pb.time} น.)</span>${a.by?`<span>${I.user}${esc(a.by)}</span>`:''}</div>
       <div class="prog"><div class="bar${due?' hz':''}"><i style="width:${pct}%"></i></div><small>${prog}</small></div>
       <div class="arow">
         ${safe?`<a class="btn sm" href="${esc(safe)}" target="_blank" rel="noopener" data-act="open-file">${I.ext}เปิดไฟล์</a>`:''}
-        ${a.done?'':`<button class="btn sm ghost" data-act="done-alert">${I.check}ติดตามแล้ว</button>`}
+        ${a.folderLink ? `<a class="btn sm ghost" href="${esc(a.folderLink)}" target="_blank" rel="noopener">${I.folder}ที่อยู่ไฟล์</a>` : ''}
+        ${a.done?'':`<button class="btn sm ghost" data-act="done-alert">${I.check}รับทราบ</button>`}
         <button class="icon-btn sm danger" data-act="del-alert" aria-label="ลบการแจ้งเตือน">${I.trash}</button>
       </div></div></article>`;
 }
@@ -859,46 +829,27 @@ function renderAlerts(){
   const N=S.settings.followUpDays;
   const flt={all:()=>true,new:a=>!a.done&&!a.read&&!isDue(a),due:isDue,done:a=>a.done};
   const cnt=k=>S.alerts.filter(flt[k]).length;
-  $('#a-chips').innerHTML=chips({all:'ทั้งหมด',new:'ใหม่',due:`ครบ ${N} วัน`,done:'ติดตามแล้ว'},af,cnt,'f-alert');
+  $('#a-chips').innerHTML=chips({all:'ทั้งหมด',new:'ใหม่',due:`ครบ ${N} วัน`,done:'รับทราบแล้ว'},af,cnt,'f-alert');
   $('#a-sync').textContent=S.lastDriveScan?'สแกนล่าสุด '+ago(S.lastDriveScan):'';
   const list=S.alerts.filter(flt[af]).sort((a,b)=>(isDue(b)-isDue(a))||(new Date(b.at)-new Date(a.at)));
-  $('#a-list').innerHTML=list.length?list.map(alertCard).join(''):empty('ยังไม่มีการแจ้งเตือน',S.settings.folders.length?'เมื่อมีไฟล์ใหม่หรือมีการแก้ไข จะแสดงที่นี่':'เพิ่มโฟลเดอร์ที่จะติดตามในหน้าตั้งค่า');
+  $('#a-list').innerHTML=list.length?list.map(alertCard).join(''):empty('ยังไม่มีการแจ้งเตือนไฟล์','เมื่อกด "สแกนไฟล์ในไดร์ฟ" ข้อมูลจะมาแสดงที่นี่');
 }
 function renderSettings(){
-  const s=S.settings,hasDemo=S.tasks.some(x=>x.demo)||S.meetings.some(x=>x.demo)||S.alerts.some(x=>x.demo);
+  const s=S.settings;
   const perm='Notification' in window?Notification.permission:'denied';
   $('#settings').innerHTML=`
-  <div class="card"><h3>Database กลาง (Google Apps Script Web App)</h3>
-    <p class="hint">ใส่ Web App URL ที่ได้จากขั้นตอนการ Deploy Google Apps Script เพื่อใช้ตาราง Google Sheets ร่วมกันทุกคน</p>
-    <label>Google Apps Script Web App URL<input id="s-api" value="${esc(s.apiUrl)}" placeholder="https://script.google.com/macros/s/.../exec" autocomplete="off"></label>
-  </div>
-  <div class="card"><h3>เชื่อมต่อ Google Calendar & Drive</h3>
-    <p class="hint">ใช้สำหรับซิงก์ปฏิทินสองทางและสแกนไฟล์ใน Drive ข้อมูลประมวลผลในเบราว์เซอร์ของคุณเท่านั้น</p>
-    <label>OAuth Client ID<input id="s-client" value="${esc(s.clientId)}" placeholder="xxxxxxxx.apps.googleusercontent.com" autocomplete="off"></label>
-    <label>Calendar ID ที่ใช้ซิงก์ (ใช้ primary สำหรับปฏิทินหลัก หรือใส่ ID ปฏิทินของห้องวางแผน)<input id="s-cal" value="${esc(s.calendarId)}" placeholder="primary" autocomplete="off"></label>
-    <div class="row"><button class="btn" data-act="connect">${isConnected()?'เชื่อมต่อใหม่':'เชื่อมต่อ Google'}</button>${isConnected()?'<button class="btn ghost" data-act="disconnect">ยกเลิกการเชื่อมต่อ</button>':''}</div>
-  </div>
-  <div class="card"><h3>โฟลเดอร์ใน Drive ที่ติดตาม</h3>
-    <p class="hint">ระบบจะดูไฟล์ในโฟลเดอร์และโฟลเดอร์ย่อย (ลึกสุด 3 ชั้น) เมื่อมีไฟล์ใหม่หรือแก้ไข จะขึ้นแจ้งเตือนพร้อมลิงก์เปิดไฟล์</p>
-    ${s.folders.length?`<ul class="flist">${s.folders.map((f,i)=>`<li><div><b>${esc(f.label)}</b><small>${esc(f.id)}</small></div><button class="icon-btn sm danger" data-act="rm-folder" data-idx="${i}" aria-label="เอาโฟลเดอร์ออก">${I.trash}</button></li>`).join('')}</ul>`:''}
-    <div class="three"><label>ชื่อเรียก<input id="f-label" placeholder="เช่น แผนงาน"></label><label>ลิงก์หรือ ID โฟลเดอร์<input id="f-link" placeholder="วางลิงก์โฟลเดอร์จาก Drive"></label><button class="btn" data-act="add-folder">${I.plus}เพิ่ม</button></div>
-  </div>
-  <div class="card"><h3>การแจ้งเตือน</h3>
-    <label>แจ้งเตือนติดตามหลังไฟล์ถูกสร้างหรืออัปเดตครบ (วัน)<input id="s-days" type="number" min="1" max="60" value="${s.followUpDays}" style="max-width:140px"></label>
-    <label class="chk"><input type="checkbox" id="s-auto" ${s.autoSync?'checked':''}><span>ซิงก์และสแกนอัตโนมัติทุก 5 นาที ขณะเปิดหน้านี้ไว้</span></label>
+  <div class="card"><h3>การแจ้งเตือนและระบบเบื้องหลัง</h3>
+    <p class="hint">ระบบจะเชื่อมข้อมูลอัตโนมัติเมื่อมีการเปิดหน้านี้ทิ้งไว้ (มีแจ้งเตือนเมื่อเพิ่มการประชุม)</p>
+    <label>จำนวนวันสำหรับการแจ้งเตือนติดตามไฟล์ (วัน)<input id="s-days" type="number" min="1" max="60" value="${s.followUpDays}" style="max-width:140px"></label>
+    <label class="chk"><input type="checkbox" id="s-auto" ${s.autoSync?'checked':''}><span>ซิงก์ข้อมูลอัตโนมัติทุก 10 วินาที</span></label>
     <div class="row" style="margin-top:12px"><button class="btn ghost" data-act="notif-perm"${perm==='granted'?' disabled':''}>${I.bell}${perm==='granted'?'เปิดการแจ้งเตือนบนเบราว์เซอร์แล้ว':perm==='denied'?'การแจ้งเตือนถูกบล็อกในเบราว์เซอร์':'เปิดการแจ้งเตือนบนเบราว์เซอร์'}</button></div>
   </div>
-  <div class="card"><h3>โลโก้และข้อมูล</h3>
-    <p class="hint">แตะโลโก้ด้านบนเพื่อเปลี่ยนเป็นโลโก้ทางการของหน่วยงาน (ไฟล์ภาพ PNG หรือ JPG)</p>
-    <div class="row">
-      ${s.logo?'<button class="btn ghost sm" data-act="rm-logo">ใช้โลโก้เริ่มต้น</button>':''}
-      <button class="btn ghost sm" data-act="export">ส่งออกข้อมูล</button>
-      <button class="btn ghost sm" data-act="import">นำเข้าข้อมูล</button>
-      ${hasDemo?'<button class="btn ghost sm" data-act="clear-demo">ล้างข้อมูลตัวอย่าง</button>':''}
-    </div>
+  <div class="card"><h3>บัญชี Google สำหรับสแกนไดร์ฟ (Admin)</h3>
+    <p class="hint">ต้องล็อกอินบัญชี Google เฉพาะเมื่อต้องการกดปุ่มสแกนไดร์ฟ</p>
+    <div class="row"><button class="btn" data-act="connect">${isConnected()?'เชื่อมต่อใหม่':'เข้าสู่ระบบ Google'}</button>${isConnected()?'<button class="btn ghost" data-act="disconnect">ออกจากระบบ</button>':''}</div>
   </div>`;
 }
-function renderAll(){renderLogo();renderConn();renderStats();renderTasks();renderMeetings();renderAlerts();renderNav();if(!$('#view-settings').hidden)renderSettings()}
+function renderAll(){renderStats();renderTasks();renderMeetings();renderAlerts();renderNav();if(!$('#view-settings').hidden)renderSettings()}
 
 function taskForm(id){
   const old=id?S.tasks.find(x=>x.id===id):null;
@@ -916,24 +867,23 @@ function taskForm(id){
     const d={title:f.get('title').trim(),owner:f.get('owner').trim(),due:f.get('due')||'',priority:f.get('priority'),status:f.get('status'),note:f.get('note').trim(),syncCal:f.get('syncCal')==='on'};
     if(!d.title)return;
     if(d.syncCal&&!d.due){toast('ต้องระบุวันครบกำหนด จึงจะแสดงบนปฏิทินได้','err');return}
-    const now=new Date().toISOString();
+    closeModal();
     
+    const now=new Date().toISOString();
     let taskObj;
-    if(old) {
-      Object.assign(old,d,{updatedAt:now,dirty:true});
-      taskObj = old;
-    } else {
+    if(old){
+      taskObj = {...old, ...d, updatedAt:now, dirty:true};
+      Object.assign(old, taskObj); // อัปเดตฝั่งผู้ใช้ทันทีให้ดูไว
+    }else{
       taskObj = {id:'TASK-'+uid(),createdAt:now,updatedAt:now,gcalId:null,dirty:true,...d};
       S.tasks.push(taskObj);
     }
+    renderAll();
     
-    save();closeModal();renderAll();
+    // บันทึกลงส่วนกลาง แล้วดึงกลับมาให้ตรงกัน
+    await sendToGAS(old?"update":"add", "task", taskObj);
+    await syncGASData();
     toast(old?'บันทึกการแก้ไขแล้ว':'เพิ่มงานแล้ว');
-
-    if (S.settings.apiUrl) {
-      await sendToGAS(old ? "update" : "add", "task", taskObj);
-    }
-    queueSync();
   });
 }
 function meetingForm(id){
@@ -955,67 +905,38 @@ function meetingForm(id){
     const d={title:f.get('title').trim(),date:f.get('date'),start:all?'':f.get('start'),end:all?'':f.get('end'),location:f.get('location').trim(),note:f.get('note').trim()};
     if(!d.title||!d.date)return;
     if(!all&&(!d.start||!d.end||d.end<=d.start)){toast('เวลาสิ้นสุดต้องหลังเวลาเริ่ม','err');return}
+    closeModal();
     
     let meetObj;
-    if(old) {
-      Object.assign(old,d,{dirty:true});
-      meetObj = old;
-    } else {
+    if(old){
+      meetObj = {...old, ...d, dirty:true};
+      Object.assign(old, meetObj);
+    }else{
       meetObj = {id:'MEET-'+uid(),gcalId:null,dirty:true,...d};
       S.meetings.push(meetObj);
     }
-
-    save();closeModal();renderAll();
+    renderAll();
+    
+    await sendToGAS(old?"update":"add", "meeting", meetObj);
+    await syncGASData();
     toast(old?'บันทึกการแก้ไขแล้ว':'เพิ่มการประชุมแล้ว');
-
-    if (S.settings.apiUrl) {
-      await sendToGAS(old ? "update" : "add", "meeting", meetObj);
-    }
-    queueSync();
   });
 }
-function delItem(kind,id){
-  const arr=kind==='task'?S.tasks:S.meetings,i=arr.findIndex(x=>x.id===id);
+async function delItem(kind,id){
+  const arr=kind==='task'?S.tasks:S.meetings;
+  const i=arr.findIndex(x=>x.id===id);
   if(i<0)return;
-  const[it]=arr.splice(i,1);
-  if(it.gcalId&&!S.pendingDeletes.includes(it.gcalId))S.pendingDeletes.push(it.gcalId);
-  save();renderAll();
+  const it = arr[i];
+  
+  if(!confirm(`ต้องการลบ "${it.title}" แบบถาวรใช่หรือไม่?`)) return;
 
-  if (S.settings.apiUrl) {
-    sendToGAS("delete", kind, { id: id });
-  }
-
-  toast(`ลบ "${it.title}" แล้ว`,'',{label:'เลิกทำ',fn:()=>{
-    arr.splice(Math.min(i,arr.length),0,it);
-    S.pendingDeletes=S.pendingDeletes.filter(x=>x!==it.gcalId);
-    it.dirty=true;save();renderAll();
-    if(S.settings.apiUrl) {
-      sendToGAS("add", kind, it);
-    }
-    queueSync();
-  }});
-  queueSync(7500);
-}
-function parseFolderId(s){
-  s=(s||'').trim();
-  const m=s.match(/\/folders\/([A-Za-z0-9_-]+)/)||s.match(/[?&]id=([A-Za-z0-9_-]+)/);
-  if(m)return m[1];
-  return/^[A-Za-z0-9_-]{10,}$/.test(s)?s:'';
-}
-function setLogo(file){
-  const r=new FileReader();
-  r.onload=()=>{
-    const img=new Image();
-    img.onload=()=>{
-      const k=Math.min(1,256/Math.max(img.width,img.height)),c=document.createElement('canvas');
-      c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);
-      c.getContext('2d').drawImage(img,0,0,c.width,c.height);
-      S.settings.logo=c.toDataURL('image/png');save();renderLogo();if(!$('#view-settings').hidden)renderSettings();toast('เปลี่ยนโลโก้แล้ว');
-    };
-    img.onerror=()=>toast('อ่านไฟล์ภาพไม่ได้','err');
-    img.src=r.result;
-  };
-  r.readAsDataURL(file);
+  arr.splice(i,1); // ลบออกจาหน้าจอผู้ใช้ก่อนเพื่อความรวดเร็ว
+  save(); renderAll();
+  
+  toast(`กำลังลบข้อมูลออกจากส่วนกลาง...`);
+  await sendToGAS("delete", kind, { id: id });
+  await syncGASData(); // ยืนยันการเปลี่ยนแปลงด้วยการดึงข้อมูลล่าสุด
+  toast(`ลบ "${it.title}" เรียบร้อยแล้ว`);
 }
 
 document.addEventListener('click',async e=>{
@@ -1031,10 +952,8 @@ document.addEventListener('click',async e=>{
       const t=S.tasks.find(x=>x.id===id);if(!t)break;
       t.status={todo:'doing',doing:'done',done:'todo'}[t.status];t.updatedAt=new Date().toISOString();t.dirty=true;
       save();renderAll();
-      if(S.settings.apiUrl) {
-        await sendToGAS("update", "task", t);
-      }
-      queueSync();
+      await sendToGAS("update", "task", t);
+      await syncGASData();
       break;
     }
     case'del-task':delItem('task',id);break;
@@ -1046,127 +965,73 @@ document.addEventListener('click',async e=>{
     case'f-alert':af=b.dataset.v;renderAlerts();break;
     case'open-file':{
       const a=S.alerts.find(x=>x.id===id);
-      if(a){
-        a.read=true;
-        save();
-        if(card) card.classList.remove('unread');
-        renderNav();
-        renderStats();
-        if(S.settings.apiUrl) sendToGAS('update', 'alert', a);
-      }
+      if(a){a.read=true;save();card.classList.remove('unread');renderNav();renderStats()}
       break;
     }
     case'done-alert':{
       const a=S.alerts.find(x=>x.id===id);
       if(a){
-        a.done=true;
-        a.read=true;
-        save();
-        renderAlerts();
-        renderNav();
-        renderStats();
-        toast('บันทึกว่าติดตามแล้ว');
-        if(S.settings.apiUrl) sendToGAS('update', 'alert', a);
+        a.done=true;a.read=true;save();renderAlerts();renderNav();renderStats();
+        toast('บันทึกว่ารับทราบแล้ว');
+        await sendToGAS("update", "alert", a);
+        await syncGASData();
       }
       break;
     }
     case'del-alert':{
-      const a=S.alerts.find(x=>x.id===id);
+      if(!confirm(`ต้องการลบการแจ้งเตือนไฟล์นี้ใช่หรือไม่?`)) return;
       S.alerts=S.alerts.filter(x=>x.id!==id);
-      save();
-      renderAlerts();
-      renderNav();
-      renderStats();
-      if(a && S.settings.apiUrl) sendToGAS('delete', 'alert', {id: id});
+      save();renderAlerts();renderNav();renderStats();
+      await sendToGAS("delete", "alert", {id: id});
+      await syncGASData();
       break;
     }
     case'sync-all':
-      if(!S.settings.clientId){toast('โหมดสาธิต: ใส่ OAuth Client ID ในหน้าตั้งค่าเพื่อเชื่อม Google');break}
-      await syncCalendar(true);await scanDrive(false);break;
+      await syncGASData();
+      toast('ซิงก์ดึงข้อมูลจากส่วนกลางเรียบร้อย');
+      if (isConnected()) await syncCalendar(false);
+      break;
     case'scan-drive':scanDrive(true);break;
     case'connect':
-      try{await getToken();renderAll();toast('เชื่อมต่อ Google แล้ว');await syncCalendar(false);await scanDrive(false)}
+      try{await getToken();toast('เข้าสู่ระบบ Google แล้ว');}
       catch(err){toast(err.message,'err')}
       break;
     case'disconnect':
       try{if(token&&window.google&&google.accounts)google.accounts.oauth2.revoke(token,()=>{})}catch(err){}
-      token=null;tokExp=0;S.wasConnected=false;try{sessionStorage.removeItem('hwn2.tok')}catch(err){}
-      save();renderAll();toast('ยกเลิกการเชื่อมต่อแล้ว');break;
-    case'add-folder':{
-      const fid=parseFolderId($('#f-link').value),label=$('#f-label').value.trim()||'โฟลเดอร์ '+(S.settings.folders.length+1);
-      if(!fid){toast('ลิงก์หรือ ID โฟลเดอร์ไม่ถูกต้อง','err');break}
-      if(S.settings.folders.some(f=>f.id===fid)){toast('เพิ่มโฟลเดอร์นี้ไว้แล้ว','err');break}
-      S.settings.folders.push({id:fid,label});save();renderSettings();toast('เพิ่มโฟลเดอร์แล้ว');
-      if(isConnected())scanDrive(false);
-      break;
-    }
-    case'rm-folder':{const f=S.settings.folders[+b.dataset.idx];if(f){delete S.files[f.id];S.settings.folders.splice(+b.dataset.idx,1);save();renderSettings()}break}
+      token=null;tokExp=0;try{sessionStorage.removeItem('hwn2.tok')}catch(err){}
+      renderSettings();toast('ออกจากระบบเรียบร้อย');break;
     case'notif-perm':
       if('Notification' in window){const r=await Notification.requestPermission();renderSettings();toast(r==='granted'?'เปิดการแจ้งเตือนแล้ว':'เบราว์เซอร์ไม่อนุญาตการแจ้งเตือน',r==='granted'?'':'err')}
       break;
-    case'rm-logo':S.settings.logo=null;save();renderLogo();renderSettings();break;
-    case'export':{
-      const copy=JSON.parse(JSON.stringify(S));
-      const url=URL.createObjectURL(new Blob([JSON.stringify(copy,null,2)],{type:'application/json'}));
-      const a=document.createElement('a');a.href=url;a.download='hwn2-planning-'+todayStr()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),2000);
-      break;
-    }
-    case'import':$('#importFile').click();break;
-    case'clear-demo':
-      if(confirm('ล้างข้อมูลตัวอย่างทั้งหมด? ข้อมูลที่คุณเพิ่มเองจะไม่ถูกลบ')){
-        S.tasks=S.tasks.filter(x=>!x.demo);S.meetings=S.meetings.filter(x=>!x.demo);S.alerts=S.alerts.filter(x=>!x.demo);
-        save();renderAll();toast('ล้างข้อมูลตัวอย่างแล้ว');
-      }
-      break;
   }
 });
-$('#logoBtn').addEventListener('click',()=>$('#logoFile').click());
-$('#logoFile').addEventListener('change',e=>{const f=e.target.files[0];if(f)setLogo(f);e.target.value=''});
+
 $('#t-search').addEventListener('input',e=>{tf.q=e.target.value;renderTasks()});
-$('#importFile').addEventListener('change',e=>{
-  const f=e.target.files[0];e.target.value='';if(!f)return;
-  const r=new FileReader();
-  r.onload=()=>{
-    try{
-      const d=JSON.parse(r.result);
-      if(!d||!Array.isArray(d.tasks)||!Array.isArray(d.meetings)||!d.settings)throw new Error('รูปแบบไฟล์ไม่ถูกต้อง');
-      if(!confirm('นำเข้าข้อมูลจะแทนที่ข้อมูลปัจจุบันทั้งหมด ดำเนินการต่อหรือไม่?'))return;
-      if(d.settings.logo&&!/^data:image\/(png|jpeg|webp|gif);base64,/.test(d.settings.logo))d.settings.logo=null;
-      S={...seed(),...d,settings:{...seed().settings,...d.settings}};S.alerts=S.alerts||[];S.pendingDeletes=S.pendingDeletes||[];S.files=S.files||{};
-      save();renderAll();toast('นำเข้าข้อมูลแล้ว');
-    }catch(err){toast('นำเข้าไม่สำเร็จ: '+err.message,'err')}
-  };
-  r.readAsText(f);
-});
 $('#settings').addEventListener('change',e=>{
   const id=e.target.id;
-  if(id==='s-api'){S.settings.apiUrl=e.target.value.trim();save();renderConn();syncGASData();}
-  else if(id==='s-client'){S.settings.clientId=e.target.value.trim();token=null;tokExp=0;S.wasConnected=false;try{sessionStorage.removeItem('hwn2.tok')}catch(err){}save();renderConn();renderSettings()}
-  else if(id==='s-cal'){S.settings.calendarId=e.target.value.trim()||'primary';save()}
-  else if(id==='s-days'){S.settings.followUpDays=Math.min(60,Math.max(1,parseInt(e.target.value,10)||7));e.target.value=S.settings.followUpDays;save();renderAlerts();renderNav();renderStats()}
+  if(id==='s-days'){S.settings.followUpDays=Math.min(60,Math.max(1,parseInt(e.target.value,10)||7));e.target.value=S.settings.followUpDays;save();renderAlerts();renderNav();renderStats()}
   else if(id==='s-auto'){S.settings.autoSync=e.target.checked;save()}
 });
 $('#nav').addEventListener('click',e=>{const b=e.target.closest('[data-view]');if(b)show(b.dataset.view)});
 
 function autoRun(){
-  syncGASData();
-  if(S.settings.autoSync&&isConnected()&&!document.hidden){syncCalendar(false).then(()=>scanDrive(false))}
+  if(S.settings.autoSync&&!document.hidden){
+    syncGASData(); // ดึงข้อมูลทุกๆ 10 วินาที
+  }
 }
-setInterval(autoRun,10*1000);
-setInterval(checkDue,60*1000);
+
+// Polling อัตโนมัติทุกๆ 10 วินาที
+setInterval(autoRun, 10000);
+
 document.addEventListener('visibilitychange',()=>{
   if(document.hidden)return;
-  checkDue();
-  autoRun();
-  renderConn();
+  autoRun(); // ดึงทันทีเมื่อสลับกลับมาที่หน้าเว็บ
 });
 
 /* boot */
 renderChrome();renderAll();
 show((location.hash||'').slice(1)||'tasks');
-checkDue();
 syncGASData();
-if(isConnected())autoRun();
 })();
 </script>
 </body>
