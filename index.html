@@ -391,6 +391,7 @@ async function syncGASData() {
   try {
     const res = await fetch(API_URL);
     const json = await res.json();
+    
     if (json.status === "success" && Array.isArray(json.data)) {
       const oldMeetingIds = new Set(S.meetings.map(m => m.id));
       let newMeetingsCount = 0;
@@ -402,6 +403,8 @@ async function syncGASData() {
 
       json.data.forEach(item => {
         if (!item.id) return;
+        
+        // พยายาม Parse ค่า JSON จากคอลัมน์ detail
         let extraData = {};
         if (item.detail && item.detail.startsWith('{')) {
           try { extraData = JSON.parse(item.detail); } catch(e){}
@@ -419,7 +422,6 @@ async function syncGASData() {
             gcalId: item.gcalId || null,
             dirty: false
           });
-          // แจ้งเตือนเมื่อมีการเพิ่มการประชุมเข้ามาใหม่
           if (!oldMeetingIds.has(item.id) && S.wasLoaded) {
             newMeetingsCount++;
             newMeetingTitle = item.title;
@@ -442,14 +444,19 @@ async function syncGASData() {
             notified: true
           });
         } else {
+          // ถ้าเป็น Task ทั่วไป (ไม่มี Prefix ชี้เฉพาะ และสถานะไม่ใช่ meeting/alert)
+          // จัดการ fallback ให้ครอบคลุม
+          let taskDetail = item.detail;
+          if(extraData.note !== undefined) { taskDetail = extraData.note; }
+
           fetchedTasks.push({
             id: item.id,
             title: item.title || '(ไม่มีหัวข้อ)',
-            note: extraData.note || item.detail || '',
-            status: item.status || 'todo',
+            note: taskDetail || '',
+            status: (item.status === 'todo' || item.status === 'doing' || item.status === 'done') ? item.status : 'todo',
             owner: item.assignee || '',
             due: item.dueDate || '',
-            priority: item.priority || 'mid',
+            priority: (item.priority === 'low' || item.priority === 'mid' || item.priority === 'high') ? item.priority : 'mid',
             syncCal: item.syncCal === true || item.syncCal === 'true',
             gcalId: item.gcalId || null,
             dirty: false
@@ -457,7 +464,7 @@ async function syncGASData() {
         }
       });
 
-      // อัปเดตข้อมูลทั้งหมดจากส่วนกลาง (Single Source of Truth)
+      // อัปเดต State (ทับข้อมูลเดิมทั้งหมดด้วยข้อมูลจาก Sheets)
       S.tasks = fetchedTasks;
       S.meetings = fetchedMeetings;
       S.alerts = fetchedAlerts;
@@ -468,6 +475,8 @@ async function syncGASData() {
       if (newMeetingsCount > 0) {
         notifyBrowser("มีการประชุมใหม่ถูกเพิ่มเข้ามา", newMeetingsCount === 1 ? newMeetingTitle : `มีการประชุมใหม่ ${newMeetingsCount} รายการ`);
       }
+    } else {
+      console.error("Format ข้อมูลที่ได้จาก API ไม่ถูกต้อง", json);
     }
   } catch (err) {
     console.error("Fetch GAS data failed:", err);
@@ -491,7 +500,7 @@ async function sendToGAS(action, itemType, itemData) {
         dueDate: itemData.date,
         priority: 'low',
         syncCal: false,
-        gcalId: itemData.gcalId
+        gcalId: itemData.gcalId || ""
       };
     } else if (itemType === 'alert') {
       payloadData = {
@@ -515,23 +524,24 @@ async function sendToGAS(action, itemType, itemData) {
         dueDate: itemData.at ? itemData.at.slice(0, 10) : todayStr(),
         priority: 'low',
         syncCal: false,
-        gcalId: null
+        gcalId: ""
       };
     } else {
+      // Task
       payloadData = {
         id: itemData.id,
         title: itemData.title,
-        detail: itemData.note || '',
+        detail: itemData.note || '', // เก็บ note ลงช่อง detail
         status: itemData.status,
         assignee: itemData.owner || '',
         dueDate: itemData.due || '',
         priority: itemData.priority || 'mid',
-        syncCal: itemData.syncCal,
-        gcalId: itemData.gcalId
+        syncCal: itemData.syncCal || false,
+        gcalId: itemData.gcalId || ""
       };
     }
 
-    await fetch(API_URL, {
+    const res = await fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify({
@@ -539,7 +549,14 @@ async function sendToGAS(action, itemType, itemData) {
         data: payloadData
       })
     });
+    
+    // Check Response Error
+    if(!res.ok) {
+       console.error("HTTP Error", res.status);
+    }
+    
   } catch (err) {
+    console.error("ส่งข้อมูลไม่สำเร็จ", err);
     toast('บันทึกข้อมูลส่วนกลางไม่สำเร็จ: ' + err.message, 'err');
   } finally {
     setBusy(false);
