@@ -359,17 +359,17 @@ async function syncGASData() {
     if (json.status === "success" && Array.isArray(json.data)) {
       const fetchedTasks = [];
       const fetchedMeetings = [];
+      const fetchedAlerts = [];
 
       json.data.forEach(item => {
         if (!item.id) return;
         
-        let meetingExtra = {};
+        let extraData = {};
         let detailText = item.detail || '';
         
         if (detailText.startsWith('{')) {
           try {
-            meetingExtra = JSON.parse(detailText);
-            detailText = meetingExtra.note || '';
+            extraData = JSON.parse(detailText);
           } catch(e){}
         }
 
@@ -378,18 +378,34 @@ async function syncGASData() {
             id: item.id,
             title: item.title || '(ไม่มีชื่อการประชุม)',
             date: item.dueDate || todayStr(),
-            start: meetingExtra.start || '09:00',
-            end: meetingExtra.end || '10:00',
+            start: extraData.start || '09:00',
+            end: extraData.end || '10:00',
             location: item.assignee || '',
-            note: detailText,
+            note: extraData.note || '',
             gcalId: item.gcalId || null,
             dirty: false
+          });
+        } else if (item.id.startsWith('ALERT-') || item.status === 'alert') {
+          fetchedAlerts.push({
+            id: item.id,
+            key: extraData.key || (item.id + '|' + (extraData.at || '')),
+            fileId: extraData.fileId || item.id,
+            name: item.title || '(ไม่มีชื่อไฟล์)',
+            kind: extraData.kind || 'updated',
+            at: extraData.at || new Date().toISOString(),
+            by: extraData.by || item.assignee || '',
+            link: extraData.link || '',
+            mime: extraData.mime || '',
+            folder: extraData.folder || '',
+            read: extraData.read === true || extraData.read === 'true',
+            done: extraData.done === true || extraData.done === 'true',
+            notified: true
           });
         } else {
           fetchedTasks.push({
             id: item.id,
             title: item.title || '(ไม่มีหัวข้อ)',
-            note: detailText,
+            note: extraData.note || detailText,
             status: item.status || 'todo',
             owner: item.assignee || '',
             due: item.dueDate || '',
@@ -403,6 +419,9 @@ async function syncGASData() {
 
       S.tasks = fetchedTasks;
       S.meetings = fetchedMeetings;
+      if (fetchedAlerts.length > 0) {
+        S.alerts = fetchedAlerts;
+      }
       save();
       renderAll();
     }
@@ -427,6 +446,29 @@ async function sendToGAS(action, itemType, itemData) {
         priority: 'low',
         syncCal: false,
         gcalId: itemData.gcalId
+      };
+    } else if (itemType === 'alert') {
+      payloadData = {
+        id: itemData.id.startsWith('ALERT-') ? itemData.id : 'ALERT-' + itemData.id,
+        title: itemData.name || itemData.title || '',
+        detail: JSON.stringify({
+          key: itemData.key,
+          fileId: itemData.fileId,
+          kind: itemData.kind,
+          at: itemData.at,
+          by: itemData.by,
+          link: itemData.link,
+          mime: itemData.mime,
+          folder: itemData.folder,
+          read: itemData.read,
+          done: itemData.done
+        }),
+        status: 'alert',
+        assignee: itemData.by || '',
+        dueDate: itemData.at ? itemData.at.slice(0, 10) : todayStr(),
+        priority: 'low',
+        syncCal: false,
+        gcalId: null
       };
     } else {
       payloadData = {
@@ -618,7 +660,25 @@ function addAlert(x,kind,folder){
   const key=x.id+'|'+x.modifiedTime;
   if(S.alerts.some(a=>a.key===key))return 0;
   S.alerts=S.alerts.filter(a=>!(a.fileId===x.id&&!a.done));
-  S.alerts.unshift({id:uid(),key,fileId:x.id,name:x.name,kind,at:x.modifiedTime,by:(x.lastModifyingUser&&x.lastModifyingUser.displayName)||'',link:x.webViewLink||'',mime:x.mimeType,folder,read:false,done:false,notified:false});
+  const newAlert = {
+    id: 'ALERT-' + uid(),
+    key,
+    fileId: x.id,
+    name: x.name,
+    kind,
+    at: x.modifiedTime,
+    by: (x.lastModifyingUser && x.lastModifyingUser.displayName) || '',
+    link: x.webViewLink || '',
+    mime: x.mimeType,
+    folder,
+    read: false,
+    done: false,
+    notified: false
+  };
+  S.alerts.unshift(newAlert);
+  if (S.settings.apiUrl) {
+    sendToGAS('add', 'alert', newAlert);
+  }
   return 1;
 }
 let scanning=false;
@@ -985,40 +1045,40 @@ document.addEventListener('click',async e=>{
         await sendToGAS("update", "task", t);
       }
       queueSync();break;
-    }
-    case'del-task':delItem('task',id);break;
-    case'add-meeting':meetingForm();break;
-    case'edit-meeting':meetingForm(id);break;
-    case'del-meeting':delItem('meeting',id);break;
-    case'f-task':tf.st=b.dataset.v;renderTasks();break;
-    case'f-meet':mf=b.dataset.v;renderMeetings();break;
-    case'f-alert':af=b.dataset.v;renderAlerts();break;
-    case'open-file':{const a=S.alerts.find(x=>x.id===id);if(a){a.read=true;save();card.classList.remove('unread');renderNav();renderStats()}break}
-    case'done-alert':{const a=S.alerts.find(x=>x.id===id);if(a){a.done=true;a.read=true;save();renderAlerts();renderNav();renderStats();toast('บันทึกว่าติดตามแล้ว')}break}
-    case'del-alert':S.alerts=S.alerts.filter(x=>x.id!==id);save();renderAlerts();renderNav();renderStats();break;
-    case'sync-all':
-      await syncGASData();
-      if(S.settings.clientId) {
-        await syncCalendar(true);await scanDrive(false);
-      } else {
-        toast('ซิงก์ข้อมูลจาก Google Sheets เรียบร้อย');
+    case'open-file':{
+      const a=S.alerts.find(x=>x.id===id);
+      if(a){
+        a.read=true;
+        save();
+        card.classList.remove('unread');
+        renderNav();
+        renderStats();
+        if(S.settings.apiUrl) sendToGAS('update', 'alert', a);
       }
       break;
-    case'scan-drive':scanDrive(true);break;
-    case'connect':
-      try{await getToken();renderAll();toast('เชื่อมต่อ Google แล้ว');await syncCalendar(false);await scanDrive(false)}
-      catch(err){toast(err.message,'err')}
+    }
+    case'done-alert':{
+      const a=S.alerts.find(x=>x.id===id);
+      if(a){
+        a.done=true;
+        a.read=true;
+        save();
+        renderAlerts();
+        renderNav();
+        renderStats();
+        toast('บันทึกว่าติดตามแล้ว');
+        if(S.settings.apiUrl) sendToGAS('update', 'alert', a);
+      }
       break;
-    case'disconnect':
-      try{if(token&&window.google&&google.accounts)google.accounts.oauth2.revoke(token,()=>{})}catch(err){}
-      token=null;tokExp=0;S.wasConnected=false;try{sessionStorage.removeItem('hwn2.tok')}catch(err){}
-      save();renderAll();toast('ยกเลิกการเชื่อมต่อแล้ว');break;
-    case'add-folder':{
-      const fid=parseFolderId($('#f-link').value),label=$('#f-label').value.trim()||'โฟลเดอร์ '+(S.settings.folders.length+1);
-      if(!fid){toast('ลิงก์หรือ ID โฟลเดอร์ไม่ถูกต้อง','err');break}
-      if(S.settings.folders.some(f=>f.id===fid)){toast('เพิ่มโฟลเดอร์นี้ไว้แล้ว','err');break}
-      S.settings.folders.push({id:fid,label});save();renderSettings();toast('เพิ่มโฟลเดอร์แล้ว');
-      if(isConnected())scanDrive(false);
+    }
+    case'del-alert':{
+      const a=S.alerts.find(x=>x.id===id);
+      S.alerts=S.alerts.filter(x=>x.id!==id);
+      save();
+      renderAlerts();
+      renderNav();
+      renderStats();
+      if(a && S.settings.apiUrl) sendToGAS('delete', 'alert', {id: id});
       break;
     }
     case'rm-folder':{const f=S.settings.folders[+b.dataset.idx];if(f){delete S.files[f.id];S.settings.folders.splice(+b.dataset.idx,1);save();renderSettings()}break}
