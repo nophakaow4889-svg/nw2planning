@@ -280,7 +280,7 @@ const SCOPES='https://www.googleapis.com/auth/calendar.events https://www.google
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const uid=()=>'TASK-'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 const todayStr=()=>new Date().toLocaleDateString('sv-SE',{timeZone:TZ});
 const addDays=(d,n)=>{const t=new Date(d+'T00:00:00Z');t.setUTCDate(t.getUTCDate()+n);return t.toISOString().slice(0,10)};
 const diffDays=(a,b)=>Math.round((new Date(b+'T00:00:00Z')-new Date(a+'T00:00:00Z'))/DAY);
@@ -319,7 +319,7 @@ function seed(){
   const t=todayStr(), now=Date.now(), iso=d=>new Date(now-d*DAY).toISOString();
   return{
     v:1,
-    settings:{clientId:'',calendarId:'primary',folders:[],followUpDays:7,autoSync:true,logo:null},
+    settings:{apiUrl:'https://script.google.com/macros/s/AKfycbxeHyUZM8o30e1h4CTL0ZFNHvxX4AJRy1qa2CEfEcojSNVN_oQek7M2bRSgQHjURr3uYg/exec',clientId:'',calendarId:'primary',folders:[],followUpDays:7,autoSync:true,logo:null},
     tasks:[
       {id:uid(),title:'จัดทำแผนงานซ่อมบำรุงทางหลวง ปีงบประมาณ 2570',owner:'เจ้าหน้าที่แผนงาน 1',due:addDays(t,5),priority:'high',status:'doing',note:'รวบรวมข้อมูลความต้องการจากหมวดการทาง',syncCal:false,gcalId:null,dirty:false,demo:true},
       {id:uid(),title:'สรุปผลการเบิกจ่ายงบประมาณเดือนกันยายน',owner:'เจ้าหน้าที่แผนงาน 2',due:addDays(t,-2),priority:'high',status:'doing',note:'',syncCal:false,gcalId:null,dirty:false,demo:true},
@@ -346,8 +346,68 @@ function seed(){
 let S;
 try{S=JSON.parse(localStorage.getItem(KEY)||'null')}catch(e){S=null}
 if(!S||!S.settings)S=seed();
+S.settings.apiUrl = S.settings.apiUrl || 'https://script.google.com/macros/s/AKfycbxeHyUZM8o30e1h4CTL0ZFNHvxX4AJRy1qa2CEfEcojSNVN_oQek7M2bRSgQHjURr3uYg/exec';
 S.pendingDeletes=S.pendingDeletes||[];S.files=S.files||{};
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){toast('บันทึกลงเครื่องไม่ได้ พื้นที่เก็บข้อมูลอาจเต็ม','err')}};
+
+/* ---------- Google Apps Script API (Database กลาง) ---------- */
+async function syncGASTasks() {
+  if (!S.settings.apiUrl) return;
+  try {
+    const res = await fetch(S.settings.apiUrl);
+    const json = await res.json();
+    if (json.status === "success" && Array.isArray(json.data)) {
+      // แปลงข้อมูลจาก Google Sheets มาใส่ในรูปแบบ S.tasks
+      S.tasks = json.data.map(item => ({
+        id: item.id,
+        title: item.title || '(ไม่มีหัวข้อ)',
+        note: item.detail || '',
+        status: item.status || 'todo',
+        owner: item.assignee || '',
+        due: item.dueDate || '',
+        priority: item.priority || 'mid',
+        syncCal: item.syncCal === true || item.syncCal === 'true',
+        gcalId: item.gcalId || null,
+        dirty: false
+      }));
+      save();
+      renderAll();
+    }
+  } catch (err) {
+    console.error("Fetch GAS tasks failed:", err);
+  }
+}
+
+async function sendTaskToGAS(action, taskData) {
+  if (!S.settings.apiUrl) return;
+  setBusy(true);
+  try {
+    await fetch(S.settings.apiUrl, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({
+        action: action,
+        data: {
+          id: taskData.id,
+          title: taskData.title,
+          detail: taskData.note,
+          status: taskData.status,
+          assignee: taskData.owner,
+          dueDate: taskData.due,
+          priority: taskData.priority,
+          syncCal: taskData.syncCal,
+          gcalId: taskData.gcalId
+        }
+      })
+    });
+    // โหลดข้อมูลล่าสุดจาก Google Sheets อีกครั้ง
+    await syncGASTasks();
+  } catch (err) {
+    toast('บันทึกลง Google Sheets ไม่สำเร็จ: ' + err.message, 'err');
+  } finally {
+    setBusy(false);
+  }
+}
 
 /* ---------- toast + modal ---------- */
 function toast(msg,kind,act){
@@ -477,13 +537,14 @@ async function pullCalendar(){
 let syncing=false;
 async function syncCalendar(manual){
   if(syncing)return;
+  await syncGASTasks(); // ซิงก์ Database กลางก่อนเสมอ
   if(!S.settings.clientId){if(manual)toast('โหมดสาธิต: ใส่ OAuth Client ID ในหน้าตั้งค่าเพื่อเชื่อม Google','');return}
   if(!isConnected()&&!manual)return;
   syncing=true;setBusy(true);
   try{
     await getToken();await pushCalendar();await pullCalendar();
     S.lastCalSync=new Date().toISOString();save();renderAll();
-    if(manual)toast('ซิงก์ปฏิทินเรียบร้อย');
+    if(manual)toast('ซิงก์ข้อมูลทั้งหมดเรียบร้อย');
   }catch(e){toast('ซิงก์ปฏิทินไม่สำเร็จ: '+e.message,'err')}
   finally{syncing=false;setBusy(false)}
 }
@@ -590,11 +651,11 @@ function renderLogo(){
 }
 function renderConn(){
   let cls='',txt='โหมดสาธิต';
-  if(S.settings.clientId){if(isConnected()){cls='on';txt='เชื่อมต่อ Google แล้ว'}else{cls='warn';txt='ยังไม่ได้เชื่อมต่อ'}}
+  if(S.settings.apiUrl||S.settings.clientId){cls='on';txt='เปิดใช้นฐานข้อมูลกลางแล้ว'}
   const c=$('#connChip');c.className='conn '+cls;$('b',c).textContent=txt;
   let h='';
-  if(!S.settings.clientId)h=`<div class="banner"><div><b>โหมดสาธิต</b> ข้อมูลบันทึกเฉพาะในเบราว์เซอร์นี้ และยังไม่เชื่อม Google Calendar หรือ Drive</div><button class="btn sm" data-act="goto" data-view="settings">ตั้งค่าเชื่อมต่อ</button></div>`;
-  else if(!isConnected())h=`<div class="banner"><div><b>ยังไม่ได้เชื่อมต่อ Google</b> เชื่อมต่อเพื่อซิงก์ปฏิทินและสแกนไฟล์ใน Drive</div><button class="btn sm" data-act="connect">เชื่อมต่อ Google</button></div>`;
+  if(!S.settings.apiUrl)h=`<div class="banner"><div><b>โหมดสาธิต</b> ข้อมูลบันทึกเฉพาะในเบราว์เซอร์นี้ กรุณาใส่ Web App URL เพื่อใช้ Database กลางร่วมกัน</div><button class="btn sm" data-act="goto" data-view="settings">ตั้งค่าเชื่อมต่อ</button></div>`;
+  else if(!isConnected())h=`<div class="banner"><div><b>ยังไม่ได้เชื่อมต่อ Google Calendar</b> คุณยังใช้ระบบ Task กลางได้ และสามารถเชื่อม Google เพื่อซิงก์ปฏิทิน</div><button class="btn sm" data-act="connect">เชื่อมต่อ Google Calendar</button></div>`;
   $('#banner').innerHTML=h;
 }
 function renderStats(){
@@ -706,19 +767,15 @@ function renderSettings(){
   const s=S.settings,hasDemo=S.tasks.some(x=>x.demo)||S.meetings.some(x=>x.demo)||S.alerts.some(x=>x.demo);
   const perm='Notification' in window?Notification.permission:'denied';
   $('#settings').innerHTML=`
-  <div class="card"><h3>เชื่อมต่อ Google</h3>
+  <div class="card"><h3>Database กลาง (Google Apps Script Web App)</h3>
+    <p class="hint">ใส่ Web App URL ที่ได้จากขั้นตอนการ Deploy Google Apps Script เพื่อใช้ตาราง Google Sheets ร่วมกันทุกคน</p>
+    <label>Google Apps Script Web App URL<input id="s-api" value="${esc(s.apiUrl)}" placeholder="https://script.google.com/macros/s/.../exec" autocomplete="off"></label>
+  </div>
+  <div class="card"><h3>เชื่อมต่อ Google Calendar & Drive</h3>
     <p class="hint">ใช้สำหรับซิงก์ปฏิทินสองทางและสแกนไฟล์ใน Drive ข้อมูลประมวลผลในเบราว์เซอร์ของคุณเท่านั้น</p>
     <label>OAuth Client ID<input id="s-client" value="${esc(s.clientId)}" placeholder="xxxxxxxx.apps.googleusercontent.com" autocomplete="off"></label>
     <label>Calendar ID ที่ใช้ซิงก์ (ใช้ primary สำหรับปฏิทินหลัก หรือใส่ ID ปฏิทินของห้องวางแผน)<input id="s-cal" value="${esc(s.calendarId)}" placeholder="primary" autocomplete="off"></label>
     <div class="row"><button class="btn" data-act="connect">${isConnected()?'เชื่อมต่อใหม่':'เชื่อมต่อ Google'}</button>${isConnected()?'<button class="btn ghost" data-act="disconnect">ยกเลิกการเชื่อมต่อ</button>':''}</div>
-    <details class="guide"><summary>วิธีขอ OAuth Client ID</summary><ol>
-      <li>เข้า <code>console.cloud.google.com</code> แล้วสร้างโปรเจกต์ใหม่</li>
-      <li>เมนู APIs &amp; Services &gt; Library เปิดใช้ <code>Google Calendar API</code> และ <code>Google Drive API</code></li>
-      <li>OAuth consent screen: ถ้าใช้ Google Workspace ของหน่วยงานให้เลือก Internal ถ้าไม่ใช่ให้เลือก External แล้วเพิ่มอีเมลผู้ใช้ใน Test users</li>
-      <li>Credentials &gt; Create credentials &gt; OAuth client ID ชนิด Web application</li>
-      <li>ช่อง Authorized JavaScript origins ใส่โดเมนที่โฮสต์ไฟล์นี้ เช่น <code>https://ชื่อ.github.io</code> หรือ <code>http://localhost:8000</code></li>
-      <li>คัดลอก Client ID มาวางด้านบน แล้วกดเชื่อมต่อ</li>
-      <li>เปิดไฟล์โดยดับเบิลคลิก (file://) จะเชื่อม Google ไม่ได้ ต้องเปิดผ่านโดเมน https หรือ localhost</li></ol></details>
   </div>
   <div class="card"><h3>โฟลเดอร์ใน Drive ที่ติดตาม</h3>
     <p class="hint">ระบบจะดูไฟล์ในโฟลเดอร์และโฟลเดอร์ย่อย (ลึกสุด 3 ชั้น) เมื่อมีไฟล์ใหม่หรือแก้ไข จะขึ้นแจ้งเตือนพร้อมลิงก์เปิดไฟล์</p>
@@ -754,15 +811,30 @@ function taskForm(id){
     <label>รายละเอียด<textarea name="note" rows="3" maxlength="2000">${esc(t.note)}</textarea></label>
     <label class="chk"><input type="checkbox" name="syncCal"${t.syncCal?' checked':''}><span>แสดงงานนี้บน Google Calendar (ซิงก์สองทาง)</span></label>
     <div class="mf"><button type="button" class="btn ghost" data-act="close">ยกเลิก</button><button class="btn">บันทึก</button></div></form>`);
-  $('#tf').addEventListener('submit',e=>{
+  $('#tf').addEventListener('submit',async e=>{
     e.preventDefault();const f=new FormData(e.target);
     const d={title:f.get('title').trim(),owner:f.get('owner').trim(),due:f.get('due')||'',priority:f.get('priority'),status:f.get('status'),note:f.get('note').trim(),syncCal:f.get('syncCal')==='on'};
     if(!d.title)return;
     if(d.syncCal&&!d.due){toast('ต้องระบุวันครบกำหนด จึงจะแสดงบนปฏิทินได้','err');return}
     const now=new Date().toISOString();
-    if(old)Object.assign(old,d,{updatedAt:now,dirty:true});
-    else S.tasks.push({id:uid(),createdAt:now,updatedAt:now,gcalId:null,dirty:true,...d});
-    save();closeModal();renderAll();queueSync();toast(old?'บันทึกการแก้ไขแล้ว':'เพิ่มงานแล้ว');
+    
+    let taskObj;
+    if(old) {
+      Object.assign(old,d,{updatedAt:now,dirty:true});
+      taskObj = old;
+    } else {
+      taskObj = {id:uid(),createdAt:now,updatedAt:now,gcalId:null,dirty:true,...d};
+      S.tasks.push(taskObj);
+    }
+    
+    save();closeModal();renderAll();
+    toast(old?'บันทึกการแก้ไขแล้ว':'เพิ่มงานแล้ว');
+
+    // ส่งบันทึกไปยัง Google Sheets Database
+    if (S.settings.apiUrl) {
+      await sendTaskToGAS(old ? "update" : "add", taskObj);
+    }
+    queueSync();
   });
 }
 function meetingForm(id){
@@ -794,10 +866,19 @@ function delItem(kind,id){
   const[it]=arr.splice(i,1);
   if(it.gcalId&&!S.pendingDeletes.includes(it.gcalId))S.pendingDeletes.push(it.gcalId);
   save();renderAll();
+
+  if (kind === 'task' && S.settings.apiUrl) {
+    sendTaskToGAS("delete", { id: id });
+  }
+
   toast(`ลบ "${it.title}" แล้ว`,'',{label:'เลิกทำ',fn:()=>{
     arr.splice(Math.min(i,arr.length),0,it);
     S.pendingDeletes=S.pendingDeletes.filter(x=>x!==it.gcalId);
-    it.dirty=true;save();renderAll();queueSync();
+    it.dirty=true;save();renderAll();
+    if(kind === 'task' && S.settings.apiUrl) {
+      sendTaskToGAS("add", it);
+    }
+    queueSync();
   }});
   queueSync(7500);
 }
@@ -836,7 +917,11 @@ document.addEventListener('click',async e=>{
     case'cycle-status':{
       const t=S.tasks.find(x=>x.id===id);if(!t)break;
       t.status={todo:'doing',doing:'done',done:'todo'}[t.status];t.updatedAt=new Date().toISOString();t.dirty=true;
-      save();renderAll();queueSync();break;
+      save();renderAll();
+      if(S.settings.apiUrl) {
+        await sendTaskToGAS("update", t);
+      }
+      queueSync();break;
     }
     case'del-task':delItem('task',id);break;
     case'add-meeting':meetingForm();break;
@@ -849,8 +934,13 @@ document.addEventListener('click',async e=>{
     case'done-alert':{const a=S.alerts.find(x=>x.id===id);if(a){a.done=true;a.read=true;save();renderAlerts();renderNav();renderStats();toast('บันทึกว่าติดตามแล้ว')}break}
     case'del-alert':S.alerts=S.alerts.filter(x=>x.id!==id);save();renderAlerts();renderNav();renderStats();break;
     case'sync-all':
-      if(!S.settings.clientId){toast('โหมดสาธิต: ใส่ OAuth Client ID ในหน้าตั้งค่าเพื่อเชื่อม Google');break}
-      await syncCalendar(true);await scanDrive(false);break;
+      await syncGASTasks();
+      if(S.settings.clientId) {
+        await syncCalendar(true);await scanDrive(false);
+      } else {
+        toast('ซิงก์ข้อมูลจาก Google Sheets เรียบร้อย');
+      }
+      break;
     case'scan-drive':scanDrive(true);break;
     case'connect':
       try{await getToken();renderAll();toast('เชื่อมต่อ Google แล้ว');await syncCalendar(false);await scanDrive(false)}
@@ -908,7 +998,8 @@ $('#importFile').addEventListener('change',e=>{
 });
 $('#settings').addEventListener('change',e=>{
   const id=e.target.id;
-  if(id==='s-client'){S.settings.clientId=e.target.value.trim();token=null;tokExp=0;S.wasConnected=false;try{sessionStorage.removeItem('hwn2.tok')}catch(err){}save();renderConn();renderSettings()}
+  if(id==='s-api'){S.settings.apiUrl=e.target.value.trim();save();renderConn();syncGASTasks();}
+  else if(id==='s-client'){S.settings.clientId=e.target.value.trim();token=null;tokExp=0;S.wasConnected=false;try{sessionStorage.removeItem('hwn2.tok')}catch(err){}save();renderConn();renderSettings()}
   else if(id==='s-cal'){S.settings.calendarId=e.target.value.trim()||'primary';save()}
   else if(id==='s-days'){S.settings.followUpDays=Math.min(60,Math.max(1,parseInt(e.target.value,10)||7));e.target.value=S.settings.followUpDays;save();renderAlerts();renderNav();renderStats()}
   else if(id==='s-auto'){S.settings.autoSync=e.target.checked;save()}
@@ -917,6 +1008,7 @@ $('#nav').addEventListener('click',e=>{const b=e.target.closest('[data-view]');i
 
 /* auto timers */
 function autoRun(){
+  syncGASTasks();
   if(S.settings.autoSync&&isConnected()&&!document.hidden){syncCalendar(false).then(()=>scanDrive(false))}
 }
 setInterval(autoRun,5*60*1000);
@@ -924,7 +1016,7 @@ setInterval(checkDue,60*1000);
 document.addEventListener('visibilitychange',()=>{
   if(document.hidden)return;
   checkDue();
-  if(!S.lastCalSync||Date.now()-new Date(S.lastCalSync)>60000)autoRun();
+  autoRun();
   renderConn();
 });
 
@@ -932,6 +1024,7 @@ document.addEventListener('visibilitychange',()=>{
 renderChrome();renderAll();
 show((location.hash||'').slice(1)||'tasks');
 checkDue();
+syncGASTasks();
 if(isConnected())autoRun();
 })();
 </script>
