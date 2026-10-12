@@ -43,10 +43,11 @@ h1,h2,h3{font-family:var(--head);font-weight:600;line-height:1.3}
 .brand small{display:block;font:600 13px var(--head);color:var(--yellow)}
 .brand h1{font-size:clamp(18px,4.8vw,27px);color:#fff;font-weight:700}
 .top-actions{display:flex;align-items:center;gap:8px;flex:none}
+.btn-login{background:transparent;border:1.5px solid var(--yellow);color:var(--yellow);padding:6px 12px;border-radius:99px;font:600 13px var(--body);white-space:nowrap}
+.btn-login:hover{background:var(--yellow);color:#000}
 .conn{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--mute);border:1px solid var(--line);border-radius:99px;padding:5px 11px}
 .conn i{width:9px;height:9px;border-radius:50%;background:#666;flex:none}
 .conn.on i{background:var(--green)} .conn.on{color:var(--text)}
-.conn.warn i{background:var(--yellow)}
 @media(max-width:560px){.conn b{display:none}.conn{padding:8px}}
 .stripe{height:10px;background:repeating-linear-gradient(-45deg,var(--yellow) 0 14px,#000 14px 28px)}
 
@@ -66,9 +67,6 @@ h1,h2,h3{font-family:var(--head);font-weight:600;line-height:1.3}
 
 /* layout */
 main{max-width:1100px;margin:auto;padding:18px 16px}
-.banner{display:flex;gap:12px;align-items:center;justify-content:space-between;background:var(--card);border:1px dashed var(--yellow);border-radius:12px;padding:12px 14px;margin-bottom:16px;font-size:14.5px}
-.banner b{color:var(--yellow)}
-.banner .btn{flex:none;white-space:nowrap}
 .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:22px}
 @media(min-width:760px){.stats{grid-template-columns:repeat(4,1fr)}}
 .tile{background:var(--card);border:0;border-left:6px solid var(--yellow);border-radius:4px 12px 12px 4px;padding:12px 14px;text-align:left;display:block;width:100%}
@@ -165,22 +163,6 @@ label.chk input{margin:0}
 .empty{text-align:center;color:var(--mute);padding:38px 12px;border:1.5px dashed var(--line);border-radius:12px}
 .empty b{display:block;color:var(--text);font:600 17px var(--head);margin-bottom:4px}
 
-/* settings */
-.card h3{font-size:18px;margin-bottom:6px}
-.hint{font-size:14px;color:var(--mute);margin-bottom:12px}
-.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.flist{list-style:none;margin:10px 0}
-.flist li{display:flex;align-items:center;gap:10px;background:#000;border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-bottom:8px}
-.flist li div{flex:1;min-width:0}
-.flist small{display:block;color:var(--mute);font-size:12.5px;overflow:hidden;text-overflow:ellipsis}
-.three{display:grid;gap:10px;grid-template-columns:1fr}
-@media(min-width:620px){.three{grid-template-columns:1fr 2fr auto;align-items:end}.three .btn{margin-bottom:12px}}
-details.guide{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
-details.guide summary{cursor:pointer;color:var(--yellow);font-weight:600}
-details.guide ol{margin:10px 0 0 20px;font-size:14.5px;color:var(--mute)}
-details.guide li{margin-bottom:6px}
-details.guide code{background:#000;padding:1px 6px;border-radius:5px;color:var(--text);font-size:13px}
-
 /* modal + toast */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:60;display:flex;align-items:flex-end;justify-content:center}
 .sheet{background:var(--card);width:100%;max-width:560px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:18px 18px calc(18px + env(safe-area-inset-bottom));border-top:5px solid var(--yellow)}
@@ -191,7 +173,7 @@ details.guide code{background:#000;padding:1px 6px;border-radius:5px;color:var(-
 .mf{display:flex;gap:10px;justify-content:flex-end;margin-top:6px}
 #toasts{position:fixed;left:12px;right:12px;bottom:96px;z-index:80;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none}
 @media(min-width:760px){#toasts{bottom:24px}}
-.toast{pointer-events:auto;background:var(--yellow);color:#000;font-weight:600;border-radius:10px;padding:10px 14px;display:flex;gap:14px;align-items:center;max-width:520px;box-shadow:0 6px 24px rgba(0,0,0,.6);font-size:15px}
+.toast{pointer-events:auto;background:var(--yellow);color:#000;font-weight:600;border-radius:10px;padding:10px 14px;display:flex;gap:14px;align-items:center;max-width:520px;box-shadow:0 6px 24px rgba(0,0,0,.6);font-size:15px;line-height:1.4}
 .toast.err{background:var(--red)}
 .toast button{background:#000;color:var(--yellow);border:0;border-radius:7px;padding:5px 11px;font-weight:700}
 </style>
@@ -208,8 +190,9 @@ details.guide code{background:#000;padding:1px 6px;border-radius:5px;color:var(-
       <h1>แขวงทางหลวงนครสวรรค์ที่ 2</h1>
     </div>
     <div class="top-actions">
-      <span class="conn on" id="connChip"><i></i><b>Database Online</b></span>
-      <button class="icon-btn" id="syncBtn" data-act="sync-all" aria-label="ซิงก์ข้อมูลตอนนี้" title="ซิงก์ข้อมูลตอนนี้"></button>
+      <button class="btn-login" id="googleLoginBtn" data-act="connect">เชื่อมต่อบัญชี Google</button>
+      <span class="conn on" id="connChip" hidden><i></i><b>เชื่อมต่อแล้ว</b></span>
+      <button class="icon-btn" id="syncBtn" data-act="sync-all" aria-label="ดึงข้อมูลล่าสุด" title="ซิงก์ดึงข้อมูลล่าสุด"></button>
     </div>
   </div>
 </header>
@@ -246,7 +229,7 @@ details.guide code{background:#000;padding:1px 6px;border-radius:5px;color:var(-
   </section>
 
   <section id="view-alerts" hidden>
-    <div class="vhead"><h2>แจ้งเตือนไฟล์ใน Drive</h2><button class="btn" data-act="scan-drive" id="scanBtn"></button></div>
+    <div class="vhead"><h2>แจ้งเตือนการแก้ไขไฟล์ (ไดร์ฟทั้งหมด)</h2><button class="btn" data-act="scan-drive" id="scanBtn"></button></div>
     <div class="centerline"></div>
     <div class="row" style="margin-bottom:14px;justify-content:space-between">
       <div class="chips" id="a-chips"></div>
@@ -256,9 +239,13 @@ details.guide code{background:#000;padding:1px 6px;border-radius:5px;color:var(-
   </section>
 
   <section id="view-settings" hidden>
-    <div class="vhead"><h2>ตั้งค่าระบบ</h2></div>
+    <div class="vhead"><h2>การแจ้งเตือนและระบบเบื้องหลัง</h2></div>
     <div class="centerline"></div>
-    <div id="settings"></div>
+    <div class="card">
+      <h3 style="margin-bottom:8px">การอนุญาตแจ้งเตือนบนเบราว์เซอร์</h3>
+      <p class="hint">ใช้เพื่อแจ้งเตือนมุมขวาล่างของจอเมื่อตรวจพบ "การเพิ่มตารางการประชุมใหม่"</p>
+      <div class="row" style="margin-top:12px"><button class="btn ghost" data-act="notif-perm" id="notifPermBtn"></button></div>
+    </div>
   </section>
 </main>
 
@@ -269,10 +256,18 @@ details.guide code{background:#000;padding:1px 6px;border-radius:5px;color:var(-
 (()=>{
 'use strict';
 
+// -----------------------------------------------------
+// CONFIGURATION (Hardcoded Single Source of Truth)
+// -----------------------------------------------------
 const API_URL = 'https://script.google.com/macros/s/AKfycbxeHyUZM8o30e1h4CTL0ZFNHvxX4AJRy1qa2CEfEcojSNVN_oQek7M2bRSgQHjURr3uYg/exec';
 const CLIENT_ID = '540842192388-8m160b7lm4m3fh8gjd9b56iu775c88g0.apps.googleusercontent.com';
 const CALENDAR_ID = 'primary';
-const KEY='hwn2.planning.v2';
+const FOLLOW_UP_DAYS = 7; // จำนวนวันกำหนดติดตามไฟล์
+const KEY = 'hwn2.planning.v3';
+
+// -----------------------------------------------------
+// HELPERS
+// -----------------------------------------------------
 const TZ='Asia/Bangkok';
 const DAY=864e5;
 const SCOPES='https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/drive.metadata.readonly';
@@ -312,19 +307,19 @@ const opt=(m,v)=>Object.entries(m).map(([k,l])=>`<option value="${k}"${k===v?' s
 const chips=(m,cur,cnt,act)=>Object.entries(m).map(([k,l])=>`<button class="chip${k===cur?' on':''}" data-act="${act}" data-v="${k}">${l}${cnt?`<em>${cnt(k)}</em>`:''}</button>`).join('');
 const empty=(t,s)=>`<div class="empty" style="grid-column:1/-1"><b>${t}</b>${s||''}</div>`;
 
-function seed(){
-  return{
-    v:2,
-    settings:{followUpDays:7,autoSync:true},
-    tasks:[], meetings:[], alerts:[],
-    pendingDeletes:[],lastCalSync:null,lastDriveScan:null,wasLoaded:false
-  };
-}
-let S;
-try{S=JSON.parse(localStorage.getItem(KEY)||'null')}catch(e){S=null}
-if(!S||S.v!==2)S=seed();
-const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+// -----------------------------------------------------
+// STATE & STORAGE
+// -----------------------------------------------------
+let S = {
+  tasks: [], meetings: [], alerts: [],
+  lastCalSync: null, lastDriveScan: null, wasLoaded: false
+};
+try{ const ls=JSON.parse(localStorage.getItem(KEY)); if(ls) S={...S,...ls}; }catch(e){}
+const save=()=>localStorage.setItem(KEY,JSON.stringify(S));
 
+// -----------------------------------------------------
+// UI COMPONENTS
+// -----------------------------------------------------
 function toast(msg,kind,act){
   const w=$('#toasts'),el=document.createElement('div');
   el.className='toast '+(kind||'');
@@ -341,39 +336,66 @@ $('#modal').addEventListener('mousedown',e=>{if(e.target.id==='modal')closeModal
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#modal').hidden)closeModal()});
 
 function notifyBrowser(title,body){
-  if('Notification' in window&&Notification.permission==='granted'){try{new Notification(title,{body,tag:'hwn2'})}catch(e){}}
+  if('Notification' in window && Notification.permission==='granted'){
+    try{new Notification(title,{body,tag:'hwn2'})}catch(e){}
+  }
 }
 
+// -----------------------------------------------------
+// GOOGLE OAUTH
+// -----------------------------------------------------
 let token=null,tokExp=0,gisP=null;
 try{const t=JSON.parse(sessionStorage.getItem('hwn2.tok')||'null');if(t&&t.exp>Date.now()){token=t.v;tokExp=t.exp}}catch(e){}
 const isConnected=()=>!!token&&Date.now()<tokExp-30000;
+
+function updateHeaderAuthUI() {
+  if (isConnected()) {
+    $('#googleLoginBtn').hidden = true;
+    $('#connChip').hidden = false;
+  } else {
+    $('#googleLoginBtn').hidden = false;
+    $('#connChip').hidden = true;
+  }
+}
+
 function loadGIS(){
   if(window.google&&google.accounts&&google.accounts.oauth2)return Promise.resolve();
   if(gisP)return gisP;
-  gisP=new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';s.onload=res;s.onerror=()=>{gisP=null;rej(new Error('โหลดระบบเข้าสู่ระบบของ Google ไม่ได้ ตรวจสอบอินเทอร์เน็ต'))};document.head.appendChild(s)});
+  gisP=new Promise((res,rej)=>{
+    const s=document.createElement('script');
+    s.src='https://accounts.google.com/gsi/client';
+    s.onload=res;
+    s.onerror=()=>{gisP=null;rej(new Error('โหลดระบบเข้าสู่ระบบของ Google ไม่ได้ ตรวจสอบอินเทอร์เน็ต'))};
+    document.head.appendChild(s);
+  });
   return gisP;
 }
-async function getToken(){
-  if(isConnected())return token;
+
+// ใช้เมื่อผู้ใช้กดปุ่มเชื่อมต่อ Google เท่านั้น
+async function getTokenInteractively(){
+  if(isConnected()) return token;
   await loadGIS();
   return new Promise((res,rej)=>{
     const c=google.accounts.oauth2.initTokenClient({
-      client_id:CLIENT_ID,scope:SCOPES,
-      callback:r=>{
+      client_id: CLIENT_ID, scope: SCOPES,
+      callback: r=>{
         if(r.error){rej(new Error(r.error_description||r.error));return}
-        token=r.access_token;tokExp=Date.now()+(r.expires_in||3600)*1000;
+        token=r.access_token; tokExp=Date.now()+(r.expires_in||3600)*1000;
         try{sessionStorage.setItem('hwn2.tok',JSON.stringify({v:token,exp:tokExp}))}catch(e){}
-        renderSettings();res(token);
+        updateHeaderAuthUI();
+        res(token);
       },
-      error_callback:e=>rej(new Error(e.type==='popup_closed'?'ปิดหน้าต่างเข้าสู่ระบบก่อนเสร็จ':(e.message||e.type||'เชื่อมต่อไม่สำเร็จ')))
+      error_callback: e=>rej(new Error(e.type==='popup_closed'?'ปิดหน้าต่างเข้าสู่ระบบก่อนเสร็จ':(e.message||e.type||'เชื่อมต่อไม่สำเร็จ')))
     });
-    c.requestAccessToken({prompt:''});
+    c.requestAccessToken({prompt:'consent'});
   });
 }
+
+// ดึงข้อมูลผ่าน Google API (Drive / Calendar)
 async function gfetch(url,opt={},retry=true){
-  const tk=await getToken();
-  const r=await fetch(url,{...opt,headers:{'Authorization':'Bearer '+tk,'Content-Type':'application/json',...(opt.headers||{})}});
-  if(r.status===401&&retry){token=null;tokExp=0;try{sessionStorage.removeItem('hwn2.tok')}catch(e){}return gfetch(url,opt,false)}
+  if(!isConnected()) throw new Error("Need authentication");
+  const r=await fetch(url,{...opt,headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json',...(opt.headers||{})}});
+  if(r.status===401&&retry){token=null;tokExp=0;try{sessionStorage.removeItem('hwn2.tok')}catch(e){}updateHeaderAuthUI();throw new Error("Session หมดอายุ");}
   if(r.status===204)return null;
   if(r.status===404||r.status===410)return{__gone:true};
   const j=await r.json().catch(()=>null);
@@ -381,17 +403,26 @@ async function gfetch(url,opt={},retry=true){
   return j;
 }
 
+// -----------------------------------------------------
+// DATABASE (GOOGLE SHEETS API)
+// -----------------------------------------------------
 let isFetching = false;
 function setBusy(b){$('#syncBtn').classList.toggle('spin',b);$('#scanBtn').classList.toggle('spin',b)}
 
+// อ่านข้อมูลจาก Sheets กลาง
 async function syncGASData() {
   if (isFetching) return;
   isFetching = true;
   setBusy(true);
   try {
     const res = await fetch(API_URL);
-    const json = await res.json();
+    if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
     
+    const text = await res.text();
+    let json;
+    try { json = JSON.parse(text); } 
+    catch(e) { throw new Error("Google Script ไม่ตอบกลับเป็น JSON (โปรดตรวจสอบการตั้งค่า Deploy)"); }
+
     if (json.status === "success" && Array.isArray(json.data)) {
       const oldMeetingIds = new Set(S.meetings.map(m => m.id));
       let newMeetingsCount = 0;
@@ -404,7 +435,6 @@ async function syncGASData() {
       json.data.forEach(item => {
         if (!item.id) return;
         
-        // พยายาม Parse ค่า JSON จากคอลัมน์ detail
         let extraData = {};
         if (item.detail && item.detail.startsWith('{')) {
           try { extraData = JSON.parse(item.detail); } catch(e){}
@@ -418,9 +448,8 @@ async function syncGASData() {
             start: extraData.start || '09:00',
             end: extraData.end || '10:00',
             location: item.assignee || '',
-            note: extraData.note || '',
-            gcalId: item.gcalId || null,
-            dirty: false
+            note: extraData.note || (item.detail.startsWith('{') ? '' : item.detail) || '',
+            gcalId: item.gcalId || null
           });
           if (!oldMeetingIds.has(item.id) && S.wasLoaded) {
             newMeetingsCount++;
@@ -438,54 +467,50 @@ async function syncGASData() {
             link: extraData.link || '',
             folderLink: extraData.folderLink || '',
             mime: extraData.mime || '',
-            folder: extraData.folder || '',
             read: extraData.read === true || extraData.read === 'true',
-            done: extraData.done === true || extraData.done === 'true',
-            notified: true
+            done: extraData.done === true || extraData.done === 'true'
           });
         } else {
-          // ถ้าเป็น Task ทั่วไป (ไม่มี Prefix ชี้เฉพาะ และสถานะไม่ใช่ meeting/alert)
-          // จัดการ fallback ให้ครอบคลุม
-          let taskDetail = item.detail;
-          if(extraData.note !== undefined) { taskDetail = extraData.note; }
-
           fetchedTasks.push({
             id: item.id,
             title: item.title || '(ไม่มีหัวข้อ)',
-            note: taskDetail || '',
-            status: (item.status === 'todo' || item.status === 'doing' || item.status === 'done') ? item.status : 'todo',
+            note: item.detail || '',
+            status: (['todo','doing','done'].includes(item.status)) ? item.status : 'todo',
             owner: item.assignee || '',
             due: item.dueDate || '',
-            priority: (item.priority === 'low' || item.priority === 'mid' || item.priority === 'high') ? item.priority : 'mid',
-            syncCal: item.syncCal === true || item.syncCal === 'true',
-            gcalId: item.gcalId || null,
-            dirty: false
+            priority: (['low','mid','high'].includes(item.priority)) ? item.priority : 'mid',
+            syncCal: item.syncCal === 'true' || item.syncCal === true,
+            gcalId: item.gcalId || null
           });
         }
       });
 
-      // อัปเดต State (ทับข้อมูลเดิมทั้งหมดด้วยข้อมูลจาก Sheets)
+      // Update State
       S.tasks = fetchedTasks;
       S.meetings = fetchedMeetings;
       S.alerts = fetchedAlerts;
-      S.wasLoaded = true;
+      
       save();
       renderAll();
 
-      if (newMeetingsCount > 0) {
-        notifyBrowser("มีการประชุมใหม่ถูกเพิ่มเข้ามา", newMeetingsCount === 1 ? newMeetingTitle : `มีการประชุมใหม่ ${newMeetingsCount} รายการ`);
+      // การแจ้งเตือนถ้าพบการประชุมใหม่
+      if (newMeetingsCount > 0 && S.wasLoaded) {
+        notifyBrowser("มีตารางประชุมใหม่ถูกเพิ่มเข้ามา", newMeetingsCount === 1 ? newMeetingTitle : `${newMeetingsCount} รายการใหม่`);
       }
+      S.wasLoaded = true;
     } else {
-      console.error("Format ข้อมูลที่ได้จาก API ไม่ถูกต้อง", json);
+      throw new Error(json.message || "Unknown Database Error");
     }
   } catch (err) {
     console.error("Fetch GAS data failed:", err);
+    toast("ดึงข้อมูลกลางไม่สำเร็จ: " + err.message, "err");
   } finally {
     isFetching = false;
     setBusy(false);
   }
 }
 
+// ส่งคำสั่งเพิ่ม ลบ แก้ไข กลับไปที่ Google Sheets (รอเสร็จสมบูรณ์)
 async function sendToGAS(action, itemType, itemData) {
   setBusy(true);
   try {
@@ -515,7 +540,6 @@ async function sendToGAS(action, itemType, itemData) {
           link: itemData.link,
           folderLink: itemData.folderLink,
           mime: itemData.mime,
-          folder: itemData.folder,
           read: itemData.read,
           done: itemData.done
         }),
@@ -527,11 +551,10 @@ async function sendToGAS(action, itemType, itemData) {
         gcalId: ""
       };
     } else {
-      // Task
       payloadData = {
         id: itemData.id,
         title: itemData.title,
-        detail: itemData.note || '', // เก็บ note ลงช่อง detail
+        detail: itemData.note || '',
         status: itemData.status,
         assignee: itemData.owner || '',
         dueDate: itemData.due || '',
@@ -544,144 +567,82 @@ async function sendToGAS(action, itemType, itemData) {
     const res = await fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({
-        action: action,
-        data: payloadData
-      })
+      body: JSON.stringify({ action: action, data: payloadData })
     });
     
-    // Check Response Error
-    if(!res.ok) {
-       console.error("HTTP Error", res.status);
-    }
+    const text = await res.text();
+    let json;
+    try { json = JSON.parse(text); } 
+    catch(e) { throw new Error("API ไม่ตอบกลับเป็น JSON"); }
+    
+    if (json.status !== "success") throw new Error(json.message);
+    return true; // Success
     
   } catch (err) {
     console.error("ส่งข้อมูลไม่สำเร็จ", err);
-    toast('บันทึกข้อมูลส่วนกลางไม่สำเร็จ: ' + err.message, 'err');
+    toast('บันทึกลง Database ไม่สำเร็จ: ' + err.message, 'err');
+    return false; // Failed
   } finally {
     setBusy(false);
   }
 }
 
-const calUrl=(p='')=>'https://www.googleapis.com/calendar/v3/calendars/'+encodeURIComponent(CALENDAR_ID)+'/events'+p;
-const TASK_PREFIX=/^\[(งาน|งานเสร็จ)\]\s*/;
-function meetingBody(m){
-  const b={summary:m.title,location:m.location||'',description:m.note||'',extendedProperties:{private:{hwn2:'meeting'}}};
-  if(m.start){b.start={dateTime:`${m.date}T${m.start}:00+07:00`,timeZone:TZ};b.end={dateTime:`${m.date}T${m.end||m.start}:00+07:00`,timeZone:TZ}}
-  else{b.start={date:m.date};b.end={date:addDays(m.date,1)}}
-  return b;
-}
-function taskBody(t){
-  return{summary:(t.status==='done'?'[งานเสร็จ] ':'[งาน] ')+t.title,description:t.note||'',start:{date:t.due},end:{date:addDays(t.due,1)},
-    extendedProperties:{private:{hwn2:'task',taskId:t.id,owner:t.owner||'',priority:t.priority,status:t.status}}};
-}
-async function upsertRemote(item,body){
-  let r=null;
-  if(item.gcalId){r=await gfetch(calUrl('/'+encodeURIComponent(item.gcalId)),{method:'PATCH',body:JSON.stringify(body)});if(r&&r.__gone)r=null}
-  if(!r)r=await gfetch(calUrl(''),{method:'POST',body:JSON.stringify(body)});
-  item.gcalId=r.id;item.remoteUpdated=r.updated;item.dirty=false;
-  if(r.htmlLink)item.link=r.htmlLink;
-}
-async function pushCalendar(){
-  for(const id of [...S.pendingDeletes]){
-    await gfetch(calUrl('/'+encodeURIComponent(id)),{method:'DELETE'});
-    S.pendingDeletes=S.pendingDeletes.filter(x=>x!==id);save();
-  }
-  for(const m of S.meetings.filter(x=>x.dirty))await upsertRemote(m,meetingBody(m));
-  for(const t of S.tasks){
-    if(t.syncCal&&t.due){if(t.dirty||!t.gcalId)await upsertRemote(t,taskBody(t))}
-    else if(!t.syncCal&&t.gcalId){await gfetch(calUrl('/'+encodeURIComponent(t.gcalId)),{method:'DELETE'});t.gcalId=null;t.remoteUpdated=null;}
-  }
-}
-function evToMeeting(ev){
-  let date,start='',end='';
-  if(ev.start.date){date=ev.start.date}
-  else{const a=partsBKK(ev.start.dateTime),b=partsBKK(ev.end.dateTime);date=a.date;start=a.time;end=b.time}
-  return{gcalId:ev.id,title:ev.summary||'(ไม่มีชื่อ)',date,start,end,location:ev.location||'',note:ev.description||'',link:ev.htmlLink||'',remoteUpdated:ev.updated,dirty:false};
-}
-async function pullCalendar(){
-  const min=addDays(todayStr(),-14),max=addDays(todayStr(),120);
-  let items=[],pt='';
-  do{
-    const q=new URLSearchParams({timeMin:min+'T00:00:00+07:00',timeMax:max+'T00:00:00+07:00',singleEvents:'true',orderBy:'startTime',maxResults:'250'});
-    if(pt)q.set('pageToken',pt);
-    const r=await gfetch(calUrl('?'+q));
-    if(r&&r.items)items=items.concat(r.items);
-    pt=(r&&r.nextPageToken)||'';
-  }while(pt);
-  const seen=new Set();
-  for(const ev of items){
-    if(ev.status==='cancelled'||!ev.start)continue;
-    seen.add(ev.id);
-    const p=(ev.extendedProperties&&ev.extendedProperties.private)||{};
-    if(p.hwn2==='task'){
-      const t=S.tasks.find(x=>x.gcalId===ev.id)||(p.taskId&&S.tasks.find(x=>x.id===p.taskId));
-      const f={title:(ev.summary||'').replace(TASK_PREFIX,'')||'(ไม่มีชื่อ)',due:ev.start.date||partsBKK(ev.start.dateTime).date,note:ev.description||'',owner:p.owner||'',priority:PRIO[p.priority]?p.priority:'mid',status:STAT[p.status]?p.status:'todo',gcalId:ev.id,syncCal:true,remoteUpdated:ev.updated,dirty:false};
-      if(!t){ S.tasks.push({id:p.taskId||'TASK-'+uid(),createdAt:ev.created||new Date().toISOString(),updatedAt:ev.updated,...f}); t=S.tasks[S.tasks.length-1]; t.dirty=true; }
-      else if(t.remoteUpdated!==ev.updated) { Object.assign(t,f,{updatedAt:ev.updated, dirty:true}); }
-    }else{
-      const m=S.meetings.find(x=>x.gcalId===ev.id),f=evToMeeting(ev);
-      if(!m){ S.meetings.push({id:'MEET-'+uid(),...f}); S.meetings[S.meetings.length-1].dirty=true; }
-      else if(m.remoteUpdated!==ev.updated){ Object.assign(m,f,{dirty:true}); }
-    }
-  }
-}
-let syncing=false;
-async function syncCalendar(manual){
-  if(syncing)return;
-  if(!isConnected()&&!manual){return;}
-  syncing=true;setBusy(true);
-  try{
-    await getToken();
-    await syncGASData(); // Load fresh data before syncing
-    await pushCalendar();
-    await pullCalendar();
+// -----------------------------------------------------
+// CALENDAR & DRIVE SYNC
+// -----------------------------------------------------
+let syncing = false;
+async function syncCalendar() {
+  if (syncing) return;
+  if (!isConnected()) return; // Must be connected
+  syncing = true;
+  setBusy(true);
+  try {
+    const min = addDays(todayStr(),-14), max = addDays(todayStr(),120);
+    const q = new URLSearchParams({timeMin:min+'T00:00:00+07:00',timeMax:max+'T00:00:00+07:00',singleEvents:'true',orderBy:'startTime',maxResults:'250'});
+    const r = await gfetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CALENDAR_ID)}/events?${q}`);
     
-    // Save any newly created Calendar events back to GAS
-    for(const m of S.meetings) if(m.dirty){ await sendToGAS("update", "meeting", m); m.dirty=false; }
-    for(const t of S.tasks) if(t.dirty){ await sendToGAS("update", "task", t); t.dirty=false; }
-    
-    S.lastCalSync=new Date().toISOString();save();renderAll();
-    if(manual)toast('ซิงก์ปฏิทินเรียบร้อย');
-  }catch(e){toast('ซิงก์ปฏิทินไม่สำเร็จ: '+e.message,'err')}
-  finally{syncing=false;setBusy(false)}
+    // (Optional implementation for pulling Google Calendar specific features - keeping it simple for now)
+    S.lastCalSync = new Date().toISOString();
+    save();
+    renderAll();
+  } catch(e) {
+    console.error("Calendar Sync error", e);
+  } finally {
+    syncing = false;
+    setBusy(false);
+  }
 }
 
-let scanning=false;
+let scanning = false;
 async function scanDrive(manual){
-  if(!isConnected()){if(manual)toast('กรุณาเข้าสู่ระบบในหน้าตั้งค่าเพื่อสแกนไดร์ฟ');return}
-  if(scanning)return;
-  scanning=true;setBusy(true);
-  try{
-    await getToken();
-    
-    // ค้นหาไฟล์ทั้งหมดใน Drive ที่ถูกแก้ไขภายในระยะเวลาที่กำหนด
-    const daysLimit = S.settings.followUpDays;
-    const xDaysAgo = new Date(Date.now() - daysLimit * DAY).toISOString();
+  if (!isConnected()) {
+    if (manual) toast('กรุณาคลิก "เชื่อมต่อบัญชี Google" ด้านบนขวาก่อนสแกนไดร์ฟ', 'err');
+    return;
+  }
+  if (scanning) return;
+  scanning = true;
+  setBusy(true);
+  try {
+    const xDaysAgo = new Date(Date.now() - FOLLOW_UP_DAYS * DAY).toISOString();
+    // Scan all of Drive (except folders and trashed items)
     const q = `modifiedTime > '${xDaysAgo}' and trashed = false and mimeType != 'application/vnd.google-apps.folder'`;
     
-    let out=[],pt='';
+    let out = [], pt = '';
     do {
-      const params = new URLSearchParams({
-        q: q,
-        fields: 'nextPageToken,files(id,name,mimeType,createdTime,modifiedTime,webViewLink,lastModifyingUser(displayName),parents)',
-        pageSize: '100',
-        orderBy: 'modifiedTime desc'
-      });
-      if(pt) params.set('pageToken',pt);
+      const params = new URLSearchParams({ q: q, fields: 'nextPageToken,files(id,name,mimeType,createdTime,modifiedTime,webViewLink,lastModifyingUser(displayName),parents)', pageSize: '100', orderBy: 'modifiedTime desc' });
+      if(pt) params.set('pageToken', pt);
       const r = await gfetch('https://www.googleapis.com/drive/v3/files?'+params);
       if(!r) break;
       out = out.concat(r.files||[]);
       pt = r.nextPageToken||'';
-    } while(pt && out.length < 500); // ป้องกันดึงมาเยอะเกินไป (ดึงไม่เกิน 500 ไฟล์ล่าสุด)
+    } while(pt && out.length < 300);
 
-    let added=0;
-    for(const x of out){
+    let addedCount = 0;
+    for (const x of out) {
       const key = x.id + '|' + x.modifiedTime;
-      // ตรวจสอบว่ามีอยู่แล้วหรือไม่
-      if(S.alerts.some(a=>a.key===key)) continue;
+      if(S.alerts.some(a => a.key === key)) continue;
 
-      let kind = Math.abs(new Date(x.modifiedTime)-new Date(x.createdTime)) < 6e4 ? 'created':'updated';
+      let kind = Math.abs(new Date(x.modifiedTime)-new Date(x.createdTime)) < 6e4 ? 'created' : 'updated';
       let folderLink = x.parents && x.parents.length > 0 ? `https://drive.google.com/drive/folders/${x.parents[0]}` : '';
       
       const newAlert = {
@@ -691,38 +652,40 @@ async function scanDrive(manual){
         name: x.name,
         kind,
         at: x.modifiedTime,
-        by: (x.lastModifyingUser&&x.lastModifyingUser.displayName)||'',
-        link: x.webViewLink||'',
+        by: (x.lastModifyingUser && x.lastModifyingUser.displayName) || '',
+        link: x.webViewLink || '',
         folderLink: folderLink,
         mime: x.mimeType,
-        folder: 'ไดร์ฟของฉัน', // ไม่ระบุโฟลเดอร์เจาะจงแล้ว
         read: false,
-        done: false,
-        notified: false
+        done: false
       };
       
-      // ลบเวอร์ชันเก่าของไฟล์นี้ที่ยังไม่ได้ติดตามออก
-      S.alerts = S.alerts.filter(a => !(a.fileId === x.id && !a.done));
-      S.alerts.unshift(newAlert);
-      
+      // Upload new alert to Google Sheets directly
       await sendToGAS('add', 'alert', newAlert);
-      added++;
+      addedCount++;
     }
 
-    S.alerts=S.alerts.slice(0,300); // เก็บไว้ไม่เกิน 300 การแจ้งเตือน
-    S.lastDriveScan=new Date().toISOString();
-    save();
-    await syncGASData();
+    if (addedCount > 0) {
+      toast(`บันทึกการแก้ไขไฟล์ใหม่ ${addedCount} รายการเข้าส่วนกลางแล้ว`);
+      await syncGASData(); // Pull fresh
+    } else if (manual) {
+      toast('สแกนไดร์ฟเสร็จสิ้น ไม่มีไฟล์อัปเดตใหม่');
+    }
     
-    if(added){toast(`พบการแก้ไขไฟล์ใหม่ ${added} รายการ`);}
-    else if(manual){toast('สแกนเสร็จสิ้น ไม่มีไฟล์อัปเดตเพิ่มเติม');}
-  }catch(e){toast('สแกน Drive ไม่สำเร็จ: '+e.message,'err')}
-  finally{scanning=false;setBusy(false)}
+    S.lastDriveScan = new Date().toISOString();
+    save();
+    renderAll();
+  } catch(e) {
+    toast('สแกน Drive ไม่สำเร็จ: '+e.message, 'err');
+  } finally {
+    scanning = false;
+    setBusy(false);
+  }
 }
 
-const dueAt=a=>new Date(a.at).getTime()+S.settings.followUpDays*DAY;
-const isDue=a=>!a.done&&Date.now()>=dueAt(a);
-
+// -----------------------------------------------------
+// UI RENDERING
+// -----------------------------------------------------
 let tf={q:'',st:'all'},mf='up',af='all';
 const views=['tasks','meetings','alerts','settings'];
 function show(v){
@@ -733,27 +696,38 @@ function show(v){
   try{history.replaceState(null,'','#'+v)}catch(e){}
   window.scrollTo(0,0);
 }
+
 function renderChrome(){
   $('#syncBtn').innerHTML=I.sync;
   $('#addTaskBtn').innerHTML=I.plus+'เพิ่มงาน';
   $('#addMeetBtn').innerHTML=I.plus+'เพิ่มการประชุม';
-  $('#scanBtn').innerHTML=I.sync+'สแกนไฟล์ในไดร์ฟ';
+  $('#scanBtn').innerHTML=I.sync+'สแกนไดร์ฟอัตโนมัติ';
   const lab={tasks:[I.list,'งาน'],meetings:[I.cal,'ประชุม'],alerts:[I.bell,'ไฟล์'],settings:[I.gear,'ตั้งค่า']};
   $$('#nav button').forEach(b=>{const[i,l]=lab[b.dataset.view];b.innerHTML=i+'<span>'+l+'</span><span class="badge" hidden></span>'});
+  updateHeaderAuthUI();
 }
+
 function renderNav(){
-  const n=S.alerts.filter(a=>!a.done&&(!a.read||isDue(a))).length;
-  const b=$('#nav [data-view="alerts"] .badge');b.textContent=n;b.hidden=!n;
+  const isDue = a => !a.done && Date.now() >= (new Date(a.at).getTime() + FOLLOW_UP_DAYS * DAY);
+  const n = S.alerts.filter(a => !a.done && (!a.read || isDue(a))).length;
+  const b = $('#nav [data-view="alerts"] .badge');
+  b.textContent = n;
+  b.hidden = !n;
 }
+
 function renderStats(){
-  const t=todayStr();
-  const open=S.tasks.filter(x=>x.status!=='done').length;
-  const late=S.tasks.filter(x=>x.status!=='done'&&x.due&&x.due<t).length;
-  const wk=S.meetings.filter(m=>m.date>=t&&m.date<=addDays(t,7)).length;
-  const al=S.alerts.filter(a=>!a.done).length,due=S.alerts.filter(isDue).length;
-  const T=(n,l,c,v)=>`<button class="tile ${c}" data-act="goto" data-view="${v}"><strong>${n}</strong><span>${l}</span></button>`;
-  $('#stats').innerHTML=T(open,'งานที่ค้างอยู่','','tasks')+T(late,'งานเลยกำหนด',late?'bad':'','tasks')+T(wk,'ประชุมใน 7 วันนี้','','meetings')+T(al,due?`ไฟล์รอติดตาม (ครบกำหนด ${due})`:'ไฟล์รอติดตาม',due?'warn':'','alerts');
+  const t = todayStr();
+  const open = S.tasks.filter(x=>x.status!=='done').length;
+  const late = S.tasks.filter(x=>x.status!=='done'&&x.due&&x.due<t).length;
+  const wk = S.meetings.filter(m=>m.date>=t&&m.date<=addDays(t,7)).length;
+  
+  const isDue = a => !a.done && Date.now() >= (new Date(a.at).getTime() + FOLLOW_UP_DAYS * DAY);
+  const al = S.alerts.filter(a=>!a.done).length, due = S.alerts.filter(isDue).length;
+  
+  const T = (n,l,c,v) => `<button class="tile ${c}" data-act="goto" data-view="${v}"><strong>${n}</strong><span>${l}</span></button>`;
+  $('#stats').innerHTML = T(open,'งานที่ค้างอยู่','','tasks') + T(late,'งานเลยกำหนด',late?'bad':'','tasks') + T(wk,'ประชุมใน 7 วันนี้','','meetings') + T(al,due?`ไฟล์รอติดตาม (เกินกำหนด ${due})`:'ไฟล์รอติดตาม',due?'warn':'','alerts');
 }
+
 function dueInfo(t){
   if(!t.due)return{txt:'ไม่ระบุกำหนด',cls:''};
   if(t.status==='done')return{txt:fmtDate(t.due),cls:''};
@@ -762,12 +736,14 @@ function dueInfo(t){
   if(d===0)return{txt:'ครบกำหนดวันนี้',cls:'warn'};
   return{txt:`อีก ${d} วัน (${fmtDate(t.due)})`,cls:d<=3?'warn':''};
 }
+
 function renderTasks(){
-  const cnt=k=>k==='all'?S.tasks.length:S.tasks.filter(t=>t.status===k).length;
-  $('#t-chips').innerHTML=chips({all:'ทั้งหมด',...STAT},tf.st,cnt,'f-task');
-  const q=tf.q.trim().toLowerCase();
-  const list=S.tasks.filter(t=>(tf.st==='all'||t.status===tf.st)&&(!q||(t.title+' '+t.owner).toLowerCase().includes(q)))
+  const cnt = k => k==='all' ? S.tasks.length : S.tasks.filter(t=>t.status===k).length;
+  $('#t-chips').innerHTML = chips({all:'ทั้งหมด',...STAT}, tf.st, cnt, 'f-task');
+  const q = tf.q.trim().toLowerCase();
+  const list = S.tasks.filter(t=>(tf.st==='all'||t.status===tf.st)&&(!q||(t.title+' '+t.owner).toLowerCase().includes(q)))
     .sort((a,b)=>(a.status==='done')-(b.status==='done')||(a.due||'9999').localeCompare(b.due||'9999'));
+    
   $('#t-list').innerHTML=list.length?list.map(t=>{
     const d=dueInfo(t);
     return`<article class="card task pr-${t.priority} st-${t.status}" data-id="${t.id}">
@@ -777,21 +753,26 @@ function renderTasks(){
         <div class="meta">
           ${t.owner?`<span>${I.user}${esc(t.owner)}</span>`:''}
           <span class="${d.cls}">${I.clock}${esc(d.txt)}</span>
-          ${t.syncCal?`<span>${I.cal}${t.gcalId&&!t.dirty?'อยู่บนปฏิทินแล้ว':'รอซิงก์ขึ้นปฏิทิน'}</span>`:''}
         </div>
       </div>
       <div class="tactions">
         <button class="stbtn st-${t.status}" data-act="cycle-status" title="แตะเพื่อเปลี่ยนสถานะ">${STAT[t.status]}</button>
         <button class="icon-btn sm danger" data-act="del-task" aria-label="ลบงาน">${I.trash}</button>
-      </div></article>`}).join(''):empty(S.tasks.length?'ไม่พบงานตามเงื่อนไข':'ยังไม่มีงาน','กดปุ่ม "เพิ่มงาน" เพื่อเริ่มบันทึกงานแรก');
+      </div></article>`
+  }).join(''):empty(S.tasks.length?'ไม่พบงานตามเงื่อนไข':'ยังไม่มีงาน','กดปุ่ม "เพิ่มงาน" เพื่อบันทึกงานใหม่เข้า Database กลาง');
 }
+
 function renderMeetings(){
   const t=todayStr();
   $('#m-chips').innerHTML=chips({up:'กำลังจะถึง',past:'ที่ผ่านมา'},mf,null,'f-meet');
-  $('#m-sync').textContent=S.lastCalSync?'ซิงก์ปฏิทินล่าสุด '+ago(S.lastCalSync):'';
   let list=S.meetings.filter(m=>mf==='up'?m.date>=t:m.date<t);
   list.sort((a,b)=>(mf==='up'?1:-1)*(a.date+a.start).localeCompare(b.date+b.start));
-  if(!list.length){$('#m-list').innerHTML=empty(mf==='up'?'ไม่มีการประชุมที่กำลังจะถึง':'ไม่มีการประชุมที่ผ่านมา','กดปุ่ม "เพิ่มการประชุม" เพื่อสร้างตารางนัดหมาย');return}
+  
+  if(!list.length){
+    $('#m-list').innerHTML=empty(mf==='up'?'ไม่มีการประชุมที่กำลังจะถึง':'ไม่มีการประชุมที่ผ่านมา','กดปุ่ม "เพิ่มการประชุม" เพื่อสร้างตารางนัดหมาย');
+    return;
+  }
+  
   let h='',cur='';
   for(const m of list){
     if(m.date!==cur){
@@ -799,21 +780,20 @@ function renderMeetings(){
       const rel=d===0?'วันนี้':d===1?'พรุ่งนี้':d===-1?'เมื่อวาน':'';
       h+=`<div class="dayhead">${fmtLong(m.date)}${rel?`<small>${rel}</small>`:''}</div>`;
     }
-    const safe=/^https:\/\//.test(m.link||'')?m.link:'';
     h+=`<article class="card meet" data-id="${m.id}">
       <div class="mtime">${m.start?esc(m.start)+(m.end&&m.end!==m.start?'-'+esc(m.end):''):'ทั้งวัน'}</div>
       <div class="mbody"><h3>${esc(m.title)}</h3>
-        <div class="meta">${m.location?`<span>${I.pin}${esc(m.location)}</span>`:''}${m.gcalId&&!m.dirty?`<span>${I.cal}จาก Google Calendar</span>`:m.syncCal?`<span class="pend">${I.sync}รอซิงก์ขึ้นปฏิทิน</span>`:''}</div>
+        <div class="meta">${m.location?`<span>${I.pin}${esc(m.location)}</span>`:''}</div>
         ${m.note?`<div class="meta" style="margin-top:4px">${esc(m.note.slice(0,160))}</div>`:''}
       </div>
       <div class="mact">
-        ${safe?`<a class="icon-btn sm" href="${esc(safe)}" target="_blank" rel="noopener" aria-label="เปิดใน Google Calendar">${I.ext}</a>`:''}
         <button class="icon-btn sm" data-act="edit-meeting" aria-label="แก้ไข">${I.edit}</button>
         <button class="icon-btn sm danger" data-act="del-meeting" aria-label="ลบ">${I.trash}</button>
       </div></article>`;
   }
   $('#m-list').innerHTML=h;
 }
+
 function fileKind(m,n){
   m=m||'';n=n||'';
   if(m.includes('document')||/\.docx?$/i.test(n))return['DOC','#6aa8ff'];
@@ -823,90 +803,98 @@ function fileKind(m,n){
   if(m.startsWith('image/'))return['IMG','#c58bff'];
   return['FILE','#a3a3a3'];
 }
+
 function alertCard(a){
-  const N=S.settings.followUpDays,el=(Date.now()-new Date(a.at))/DAY,pct=Math.min(100,Math.max(2,el/N*100)),due=isDue(a);
+  const el=(Date.now()-new Date(a.at))/DAY, pct=Math.min(100,Math.max(2,el/FOLLOW_UP_DAYS*100));
+  const isDue = !a.done && el >= FOLLOW_UP_DAYS;
   const[kt,kc]=fileKind(a.mime,a.name),pb=partsBKK(a.at);
-  const prog=a.done?'ติดตามแล้ว':due?`ครบ ${N} วันแล้ว${el-N>=1?` เกินมา ${Math.floor(el-N)} วัน`:''}`:`อีก ${Math.max(1,Math.ceil(N-el))} วันจะครบ ${N} วัน`;
+  const prog=a.done?'รับทราบแล้ว':isDue?`เกินกำหนดติดตามมาแล้ว ${Math.floor(el-FOLLOW_UP_DAYS)} วัน`:`อีก ${Math.max(1,Math.ceil(FOLLOW_UP_DAYS-el))} วันจะครบกำหนดติดตาม`;
   const safe=/^https:\/\//.test(a.link||'')?a.link:'';
-  return`<article class="card alert${a.read?'':' unread'}${due?' due':''}${a.done?' done':''}" data-id="${a.id}">
+  
+  return`<article class="card alert${a.read?'':' unread'}${isDue?' due':''}${a.done?' done':''}" data-id="${a.id}">
     <div class="ftype" style="--c:${kc}">${kt}</div>
     <div class="abody">
-      <div><span class="tag ${a.kind}">${a.kind==='created'?'ไฟล์ใหม่':'อัปเดตไฟล์'}</span>${due?'<span class="tag duetag">ถึงกำหนดติดตาม</span>':''}</div>
+      <div><span class="tag ${a.kind}">${a.kind==='created'?'ไฟล์ใหม่':'อัปเดตไฟล์'}</span>${isDue?'<span class="tag duetag">เลยกำหนดติดตาม</span>':''}</div>
       <h3>${esc(a.name)}</h3>
       <div class="meta"><span>${I.clock}${ago(a.at)} (${fmtDate(pb.date)} ${pb.time} น.)</span>${a.by?`<span>${I.user}${esc(a.by)}</span>`:''}</div>
-      <div class="prog"><div class="bar${due?' hz':''}"><i style="width:${pct}%"></i></div><small>${prog}</small></div>
+      <div class="prog"><div class="bar${isDue?' hz':''}"><i style="width:${pct}%"></i></div><small>${prog}</small></div>
       <div class="arow">
         ${safe?`<a class="btn sm" href="${esc(safe)}" target="_blank" rel="noopener" data-act="open-file">${I.ext}เปิดไฟล์</a>`:''}
-        ${a.folderLink ? `<a class="btn sm ghost" href="${esc(a.folderLink)}" target="_blank" rel="noopener">${I.folder}ที่อยู่ไฟล์</a>` : ''}
+        ${a.folderLink ? `<a class="btn sm ghost" href="${esc(a.folderLink)}" target="_blank" rel="noopener">📂 ที่อยู่ไฟล์</a>` : ''}
         ${a.done?'':`<button class="btn sm ghost" data-act="done-alert">${I.check}รับทราบ</button>`}
         <button class="icon-btn sm danger" data-act="del-alert" aria-label="ลบการแจ้งเตือน">${I.trash}</button>
       </div></div></article>`;
 }
+
 function renderAlerts(){
-  const N=S.settings.followUpDays;
+  const isDue = a => !a.done && Date.now() >= (new Date(a.at).getTime() + FOLLOW_UP_DAYS * DAY);
   const flt={all:()=>true,new:a=>!a.done&&!a.read&&!isDue(a),due:isDue,done:a=>a.done};
   const cnt=k=>S.alerts.filter(flt[k]).length;
-  $('#a-chips').innerHTML=chips({all:'ทั้งหมด',new:'ใหม่',due:`ครบ ${N} วัน`,done:'รับทราบแล้ว'},af,cnt,'f-alert');
-  $('#a-sync').textContent=S.lastDriveScan?'สแกนล่าสุด '+ago(S.lastDriveScan):'';
+  
+  $('#a-chips').innerHTML=chips({all:'ทั้งหมด',new:'ใหม่',due:`ครบกำหนดติดตาม`,done:'รับทราบแล้ว'},af,cnt,'f-alert');
+  $('#a-sync').textContent=S.lastDriveScan?'สแกนไดร์ฟอัตโนมัติล่าสุด '+ago(S.lastDriveScan):'';
+  
   const list=S.alerts.filter(flt[af]).sort((a,b)=>(isDue(b)-isDue(a))||(new Date(b.at)-new Date(a.at)));
-  $('#a-list').innerHTML=list.length?list.map(alertCard).join(''):empty('ยังไม่มีการแจ้งเตือนไฟล์','เมื่อกด "สแกนไฟล์ในไดร์ฟ" ข้อมูลจะมาแสดงที่นี่');
+  $('#a-list').innerHTML=list.length?list.map(alertCard).join(''):empty('ยังไม่มีการแจ้งเตือน','เมื่อมีการสแกนไดร์ฟพบไฟล์แก้ไข จะแสดงที่นี่');
 }
-function renderSettings(){
-  const s=S.settings;
-  const perm='Notification' in window?Notification.permission:'denied';
-  $('#settings').innerHTML=`
-  <div class="card"><h3>การแจ้งเตือนและระบบเบื้องหลัง</h3>
-    <p class="hint">ระบบจะเชื่อมข้อมูลอัตโนมัติเมื่อมีการเปิดหน้านี้ทิ้งไว้ (มีแจ้งเตือนเมื่อเพิ่มการประชุม)</p>
-    <label>จำนวนวันสำหรับการแจ้งเตือนติดตามไฟล์ (วัน)<input id="s-days" type="number" min="1" max="60" value="${s.followUpDays}" style="max-width:140px"></label>
-    <label class="chk"><input type="checkbox" id="s-auto" ${s.autoSync?'checked':''}><span>ซิงก์ข้อมูลอัตโนมัติทุก 10 วินาที</span></label>
-    <div class="row" style="margin-top:12px"><button class="btn ghost" data-act="notif-perm"${perm==='granted'?' disabled':''}>${I.bell}${perm==='granted'?'เปิดการแจ้งเตือนบนเบราว์เซอร์แล้ว':perm==='denied'?'การแจ้งเตือนถูกบล็อกในเบราว์เซอร์':'เปิดการแจ้งเตือนบนเบราว์เซอร์'}</button></div>
-  </div>
-  <div class="card"><h3>บัญชี Google สำหรับสแกนไดร์ฟ (Admin)</h3>
-    <p class="hint">ต้องล็อกอินบัญชี Google เฉพาะเมื่อต้องการกดปุ่มสแกนไดร์ฟ</p>
-    <div class="row"><button class="btn" data-act="connect">${isConnected()?'เชื่อมต่อใหม่':'เข้าสู่ระบบ Google'}</button>${isConnected()?'<button class="btn ghost" data-act="disconnect">ออกจากระบบ</button>':''}</div>
-  </div>`;
-}
-function renderAll(){renderStats();renderTasks();renderMeetings();renderAlerts();renderNav();if(!$('#view-settings').hidden)renderSettings()}
 
+function renderSettings(){
+  const perm = 'Notification' in window ? Notification.permission : 'denied';
+  const btn = $('#notifPermBtn');
+  if (btn) {
+    btn.innerHTML = I.bell + (perm === 'granted' ? 'อนุญาตการแจ้งเตือนเรียบร้อยแล้ว' : perm === 'denied' ? 'เบราว์เซอร์บล็อกการแจ้งเตือน' : 'เปิดรับการแจ้งเตือน');
+    btn.disabled = (perm === 'granted');
+  }
+}
+
+function renderAll(){
+  renderStats();
+  renderTasks();
+  renderMeetings();
+  renderAlerts();
+  renderNav();
+  if(!$('#view-settings').hidden) renderSettings();
+}
+
+// -----------------------------------------------------
+// FORMS & ACTIONS
+// -----------------------------------------------------
 function taskForm(id){
-  const old=id?S.tasks.find(x=>x.id===id):null;
-  const t=old||{title:'',owner:'',due:'',priority:'mid',status:'todo',note:'',syncCal:false};
+  const old = id ? S.tasks.find(x=>x.id===id) : null;
+  const t = old || {title:'',owner:'',due:'',priority:'mid',status:'todo',note:'',syncCal:false};
   openModal(`<form id="tf" autocomplete="off">
     <div class="mh"><h2>${old?'แก้ไขงาน':'เพิ่มงานใหม่'}</h2><button type="button" class="icon-btn" data-act="close" aria-label="ปิด">${I.x}</button></div>
     <label>ชื่องาน<input name="title" required maxlength="200" value="${esc(t.title)}" placeholder="เช่น จัดทำแผนงานซ่อมบำรุงประจำปี"></label>
     <div class="two"><label>ผู้รับผิดชอบ<input name="owner" maxlength="80" value="${esc(t.owner)}"></label><label>วันครบกำหนด<input type="date" name="due" value="${esc(t.due)}"></label></div>
     <div class="two"><label>ความสำคัญ<select name="priority">${opt(PRIO,t.priority)}</select></label><label>สถานะ<select name="status">${opt(STAT,t.status)}</select></label></div>
     <label>รายละเอียด<textarea name="note" rows="3" maxlength="2000">${esc(t.note)}</textarea></label>
-    <label class="chk"><input type="checkbox" name="syncCal"${t.syncCal?' checked':''}><span>แสดงงานนี้บน Google Calendar (ซิงก์สองทาง)</span></label>
     <div class="mf"><button type="button" class="btn ghost" data-act="close">ยกเลิก</button><button class="btn">บันทึก</button></div></form>`);
-  $('#tf').addEventListener('submit',async e=>{
-    e.preventDefault();const f=new FormData(e.target);
-    const d={title:f.get('title').trim(),owner:f.get('owner').trim(),due:f.get('due')||'',priority:f.get('priority'),status:f.get('status'),note:f.get('note').trim(),syncCal:f.get('syncCal')==='on'};
+    
+  $('#tf').addEventListener('submit', async e => {
+    e.preventDefault();
+    const f=new FormData(e.target);
+    const d={
+      title:f.get('title').trim(), owner:f.get('owner').trim(), due:f.get('due')||'', 
+      priority:f.get('priority'), status:f.get('status'), note:f.get('note').trim(), syncCal:false
+    };
     if(!d.title)return;
-    if(d.syncCal&&!d.due){toast('ต้องระบุวันครบกำหนด จึงจะแสดงบนปฏิทินได้','err');return}
     closeModal();
+    toast('กำลังบันทึกลงฐานข้อมูล...');
     
-    const now=new Date().toISOString();
-    let taskObj;
-    if(old){
-      taskObj = {...old, ...d, updatedAt:now, dirty:true};
-      Object.assign(old, taskObj); // อัปเดตฝั่งผู้ใช้ทันทีให้ดูไว
-    }else{
-      taskObj = {id:'TASK-'+uid(),createdAt:now,updatedAt:now,gcalId:null,dirty:true,...d};
-      S.tasks.push(taskObj);
+    const payload = { ...d, id: old ? old.id : 'TASK-'+uid() };
+    const success = await sendToGAS(old ? "update" : "add", "task", payload);
+    
+    if(success) {
+      toast(old ? 'แก้ไขงานสำเร็จ' : 'เพิ่มงานใหม่สำเร็จ');
+      await syncGASData(); // ดึงข้อมูลล่าสุดทันที
     }
-    renderAll();
-    
-    // บันทึกลงส่วนกลาง แล้วดึงกลับมาให้ตรงกัน
-    await sendToGAS(old?"update":"add", "task", taskObj);
-    await syncGASData();
-    toast(old?'บันทึกการแก้ไขแล้ว':'เพิ่มงานแล้ว');
   });
 }
+
 function meetingForm(id){
-  const old=id?S.meetings.find(x=>x.id===id):null;
-  const m=old||{title:'',date:todayStr(),start:'09:00',end:'10:00',location:'',note:''};
-  const allDay=old&&!old.start;
+  const old = id ? S.meetings.find(x=>x.id===id) : null;
+  const m = old || {title:'',date:todayStr(),start:'09:00',end:'10:00',location:'',note:''};
+  const allDay = old && !old.start;
   openModal(`<form id="mf" autocomplete="off">
     <div class="mh"><h2>${old?'แก้ไขการประชุม':'เพิ่มการประชุม'}</h2><button type="button" class="icon-btn" data-act="close" aria-label="ปิด">${I.x}</button></div>
     <label>หัวข้อการประชุม<input name="title" required maxlength="200" value="${esc(m.title)}"></label>
@@ -916,139 +904,164 @@ function meetingForm(id){
     <label>สถานที่<input name="location" maxlength="200" value="${esc(m.location)}"></label>
     <label>รายละเอียด<textarea name="note" rows="3" maxlength="2000">${esc(m.note)}</textarea></label>
     <div class="mf"><button type="button" class="btn ghost" data-act="close">ยกเลิก</button><button class="btn">บันทึก</button></div></form>`);
+    
   $('#mAll').addEventListener('change',e=>{$$('#mf input[type=time]').forEach(i=>i.disabled=e.target.checked)});
-  $('#mf').addEventListener('submit',async e=>{
-    e.preventDefault();const f=new FormData(e.target),all=f.get('allDay')==='on';
-    const d={title:f.get('title').trim(),date:f.get('date'),start:all?'':f.get('start'),end:all?'':f.get('end'),location:f.get('location').trim(),note:f.get('note').trim()};
+  
+  $('#mf').addEventListener('submit', async e => {
+    e.preventDefault();
+    const f=new FormData(e.target), all=f.get('allDay')==='on';
+    const d={title:f.get('title').trim(), date:f.get('date'), start:all?'':f.get('start'), end:all?'':f.get('end'), location:f.get('location').trim(), note:f.get('note').trim()};
+    
     if(!d.title||!d.date)return;
     if(!all&&(!d.start||!d.end||d.end<=d.start)){toast('เวลาสิ้นสุดต้องหลังเวลาเริ่ม','err');return}
     closeModal();
+    toast('กำลังบันทึกลงฐานข้อมูล...');
     
-    let meetObj;
-    if(old){
-      meetObj = {...old, ...d, dirty:true};
-      Object.assign(old, meetObj);
-    }else{
-      meetObj = {id:'MEET-'+uid(),gcalId:null,dirty:true,...d};
-      S.meetings.push(meetObj);
+    const payload = { ...d, id: old ? old.id : 'MEET-'+uid() };
+    const success = await sendToGAS(old ? "update" : "add", "meeting", payload);
+    
+    if(success) {
+      toast(old ? 'แก้ไขการประชุมสำเร็จ' : 'เพิ่มการประชุมสำเร็จ');
+      await syncGASData();
     }
-    renderAll();
-    
-    await sendToGAS(old?"update":"add", "meeting", meetObj);
-    await syncGASData();
-    toast(old?'บันทึกการแก้ไขแล้ว':'เพิ่มการประชุมแล้ว');
   });
 }
-async function delItem(kind,id){
-  const arr=kind==='task'?S.tasks:S.meetings;
-  const i=arr.findIndex(x=>x.id===id);
-  if(i<0)return;
-  const it = arr[i];
-  
-  if(!confirm(`ต้องการลบ "${it.title}" แบบถาวรใช่หรือไม่?`)) return;
 
-  arr.splice(i,1); // ลบออกจาหน้าจอผู้ใช้ก่อนเพื่อความรวดเร็ว
-  save(); renderAll();
+// -----------------------------------------------------
+// EVENT LISTENERS
+// -----------------------------------------------------
+document.addEventListener('click', async e => {
+  const b = e.target.closest('[data-act]');
+  if(!b) return;
+  const act = b.dataset.act, card = b.closest('[data-id]'), id = card && card.dataset.id;
   
-  toast(`กำลังลบข้อมูลออกจากส่วนกลาง...`);
-  await sendToGAS("delete", kind, { id: id });
-  await syncGASData(); // ยืนยันการเปลี่ยนแปลงด้วยการดึงข้อมูลล่าสุด
-  toast(`ลบ "${it.title}" เรียบร้อยแล้ว`);
-}
-
-document.addEventListener('click',async e=>{
-  const b=e.target.closest('[data-act]');
-  if(!b)return;
-  const act=b.dataset.act,card=b.closest('[data-id]'),id=card&&card.dataset.id;
   switch(act){
-    case'close':closeModal();break;
-    case'goto':show(b.dataset.view);break;
-    case'add-task':taskForm();break;
-    case'edit-task':taskForm(id);break;
-    case'cycle-status':{
-      const t=S.tasks.find(x=>x.id===id);if(!t)break;
-      t.status={todo:'doing',doing:'done',done:'todo'}[t.status];t.updatedAt=new Date().toISOString();t.dirty=true;
-      save();renderAll();
-      await sendToGAS("update", "task", t);
-      await syncGASData();
+    case 'close': closeModal(); break;
+    case 'goto': show(b.dataset.view); break;
+    
+    case 'connect': 
+      try { 
+        toast('รอการอนุมัติสิทธิ์ในหน้าต่าง Popup...');
+        await getTokenInteractively(); 
+        toast('เชื่อมต่อ Google เสร็จสมบูรณ์'); 
+      } catch(err) { toast(err.message, 'err'); }
+      break;
+
+    case 'add-task': taskForm(); break;
+    case 'edit-task': taskForm(id); break;
+    
+    case 'cycle-status': {
+      const t = S.tasks.find(x=>x.id===id); if(!t) break;
+      const nextStatus = {todo:'doing', doing:'done', done:'todo'}[t.status];
+      toast('กำลังเปลี่ยนสถานะ...');
+      const success = await sendToGAS("update", "task", { id: t.id, status: nextStatus });
+      if (success) await syncGASData();
       break;
     }
-    case'del-task':delItem('task',id);break;
-    case'add-meeting':meetingForm();break;
-    case'edit-meeting':meetingForm(id);break;
-    case'del-meeting':delItem('meeting',id);break;
-    case'f-task':tf.st=b.dataset.v;renderTasks();break;
-    case'f-meet':mf=b.dataset.v;renderMeetings();break;
-    case'f-alert':af=b.dataset.v;renderAlerts();break;
-    case'open-file':{
-      const a=S.alerts.find(x=>x.id===id);
-      if(a){a.read=true;save();card.classList.remove('unread');renderNav();renderStats()}
-      break;
-    }
-    case'done-alert':{
-      const a=S.alerts.find(x=>x.id===id);
-      if(a){
-        a.done=true;a.read=true;save();renderAlerts();renderNav();renderStats();
-        toast('บันทึกว่ารับทราบแล้ว');
-        await sendToGAS("update", "alert", a);
-        await syncGASData();
+    
+    case 'del-task': {
+      const t = S.tasks.find(x=>x.id===id); if(!t) break;
+      if (confirm(`ยืนยันการลบงาน "${t.title}" อย่างถาวร?`)) {
+        toast('กำลังลบงาน...');
+        const success = await sendToGAS("delete", "task", { id: t.id });
+        if (success) { toast('ลบงานสำเร็จ'); await syncGASData(); }
       }
       break;
     }
-    case'del-alert':{
-      if(!confirm(`ต้องการลบการแจ้งเตือนไฟล์นี้ใช่หรือไม่?`)) return;
-      S.alerts=S.alerts.filter(x=>x.id!==id);
-      save();renderAlerts();renderNav();renderStats();
-      await sendToGAS("delete", "alert", {id: id});
-      await syncGASData();
+
+    case 'add-meeting': meetingForm(); break;
+    case 'edit-meeting': meetingForm(id); break;
+    
+    case 'del-meeting': {
+      const m = S.meetings.find(x=>x.id===id); if(!m) break;
+      if (confirm(`ยืนยันการลบการประชุม "${m.title}" อย่างถาวร?`)) {
+        toast('กำลังลบการประชุม...');
+        const success = await sendToGAS("delete", "meeting", { id: m.id });
+        if (success) { toast('ลบการประชุมสำเร็จ'); await syncGASData(); }
+      }
       break;
     }
-    case'sync-all':
+
+    case 'f-task': tf.st=b.dataset.v; renderTasks(); break;
+    case 'f-meet': mf=b.dataset.v; renderMeetings(); break;
+    case 'f-alert': af=b.dataset.v; renderAlerts(); break;
+    
+    case 'open-file': {
+      const a = S.alerts.find(x=>x.id===id);
+      if(a) { a.read = true; save(); card.classList.remove('unread'); renderNav(); renderStats(); }
+      break;
+    }
+    
+    case 'done-alert': {
+      const a = S.alerts.find(x=>x.id===id);
+      if (a) {
+        toast('กำลังบันทึกสถานะ...');
+        const success = await sendToGAS("update", "alert", { id: a.id, done: true, read: true });
+        if (success) await syncGASData();
+      }
+      break;
+    }
+    
+    case 'del-alert': {
+      const a = S.alerts.find(x=>x.id===id); if(!a) break;
+      if (confirm(`ยืนยันการลบการแจ้งเตือนไฟล์ "${a.name}" อย่างถาวร?`)) {
+        toast('กำลังลบการแจ้งเตือน...');
+        const success = await sendToGAS("delete", "alert", { id: a.id });
+        if (success) { toast('ลบสำเร็จ'); await syncGASData(); }
+      }
+      break;
+    }
+    
+    case 'sync-all':
       await syncGASData();
       toast('ซิงก์ดึงข้อมูลจากส่วนกลางเรียบร้อย');
-      if (isConnected()) await syncCalendar(false);
       break;
-    case'scan-drive':scanDrive(true);break;
-    case'connect':
-      try{await getToken();toast('เข้าสู่ระบบ Google แล้ว');}
-      catch(err){toast(err.message,'err')}
+      
+    case 'scan-drive':
+      await scanDrive(true);
       break;
-    case'disconnect':
-      try{if(token&&window.google&&google.accounts)google.accounts.oauth2.revoke(token,()=>{})}catch(err){}
-      token=null;tokExp=0;try{sessionStorage.removeItem('hwn2.tok')}catch(err){}
-      renderSettings();toast('ออกจากระบบเรียบร้อย');break;
-    case'notif-perm':
-      if('Notification' in window){const r=await Notification.requestPermission();renderSettings();toast(r==='granted'?'เปิดการแจ้งเตือนแล้ว':'เบราว์เซอร์ไม่อนุญาตการแจ้งเตือน',r==='granted'?'':'err')}
+
+    case 'notif-perm':
+      if('Notification' in window){
+        const r = await Notification.requestPermission();
+        renderSettings();
+        toast(r==='granted'?'เปิดการแจ้งเตือนแล้ว':'เบราว์เซอร์ไม่อนุญาตการแจ้งเตือน', r==='granted'?'':'err');
+      }
       break;
   }
 });
 
 $('#t-search').addEventListener('input',e=>{tf.q=e.target.value;renderTasks()});
-$('#settings').addEventListener('change',e=>{
-  const id=e.target.id;
-  if(id==='s-days'){S.settings.followUpDays=Math.min(60,Math.max(1,parseInt(e.target.value,10)||7));e.target.value=S.settings.followUpDays;save();renderAlerts();renderNav();renderStats()}
-  else if(id==='s-auto'){S.settings.autoSync=e.target.checked;save()}
-});
 $('#nav').addEventListener('click',e=>{const b=e.target.closest('[data-view]');if(b)show(b.dataset.view)});
 
+// -----------------------------------------------------
+// AUTO SYNC / POLLING
+// -----------------------------------------------------
 function autoRun(){
-  if(S.settings.autoSync&&!document.hidden){
-    syncGASData(); // ดึงข้อมูลทุกๆ 10 วินาที
+  if(document.hidden) return;
+  syncGASData(); // ดึงข้อมูล Task และ Meeting
+  if (isConnected()) {
+    scanDrive(false); // แสกนไดร์ฟเบื้องหลังเงียบๆ ถ้าล็อกอินแล้ว
   }
 }
 
-// Polling อัตโนมัติทุกๆ 10 วินาที
+// อัปเดตข้อมูลทุก 10 วินาที 
 setInterval(autoRun, 10000);
 
 document.addEventListener('visibilitychange',()=>{
-  if(document.hidden)return;
-  autoRun(); // ดึงทันทีเมื่อสลับกลับมาที่หน้าเว็บ
+  if(!document.hidden) autoRun(); // ดึงข้อมูลทันทีเมื่อสลับกลับมาหน้าเว็บ
 });
 
-/* boot */
-renderChrome();renderAll();
+// -----------------------------------------------------
+// BOOT
+// -----------------------------------------------------
+renderChrome();
+renderAll();
 show((location.hash||'').slice(1)||'tasks');
+
+// เริ่มดึงข้อมูลเมื่อโหลดหน้าเว็บ
 syncGASData();
+
 })();
 </script>
 </body>
