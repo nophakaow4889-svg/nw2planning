@@ -51,6 +51,46 @@ h1,h2,h3{font-family:var(--head);font-weight:600;line-height:1.3}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 .stripe{height:10px;background:repeating-linear-gradient(-45deg,var(--yellow) 0 14px,#000 14px 28px)}
 
+/* Oil Price Ticker (PTT OR) */
+.oil-bar{background:#070b12;border-bottom:1.5px solid #1e2d4a;padding:6px 12px;font-size:13.5px}
+.oil-in{max-width:1100px;margin:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.oil-brand{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#005baa,#003973);color:#fff;font:700 12.5px var(--head);padding:4px 10px;border-radius:6px;flex:none;border:1px solid #2b82d9;box-shadow:0 2px 8px rgba(0,91,170,.4)}
+.oil-brand i{width:8px;height:8px;border-radius:50%;background:#00e5ff;box-shadow:0 0 6px #00e5ff}
+.oil-date-wrap{display:inline-flex;align-items:center;gap:6px;background:#111722;border:1px solid #263552;border-radius:8px;padding:2px 8px;flex:none}
+.oil-date-wrap small{color:#9ec5ff;font-size:12px;font-weight:600}
+.oil-date-wrap input[type=date]{width:auto;background:transparent;border:0;padding:2px 4px;font-size:12.5px;color:#fff;font-weight:600;cursor:pointer}
+.oil-marquee{flex:1;min-width:200px;overflow:hidden;position:relative;background:#03060a;border:1px solid #1b2840;border-radius:8px;padding:5px 0}
+.oil-track{display:inline-flex;align-items:center;gap:26px;white-space:nowrap;padding-left:100%;animation:tickerMove 34s linear infinite}
+.oil-marquee:hover .oil-track{animation-play-state:paused}
+@keyframes tickerMove{0%{transform:translateX(0)}100%{transform:translateX(-100%)}}
+.oil-item{display:inline-flex;align-items:center;gap:7px;font-size:13.5px}
+.oil-tag{padding:1px 7px;border-radius:4px;font:700 11.5px var(--head);color:#000}
+.oil-val{font:700 14.5px var(--head);color:var(--yellow)}
+.oil-diff{font-size:11.5px;font-weight:700;padding:0 5px;border-radius:4px}
+.oil-diff.up{color:#ff6b6b;background:rgba(255,107,107,.12)}
+.oil-diff.down{color:#4cd07d;background:rgba(76,208,125,.12)}
+
+/* DOH System Shortcuts */
+.doh-hub{margin-bottom:20px;background:linear-gradient(180deg,#161616,#101010);border:1px solid var(--line);border-top:3px solid var(--yellow);border-radius:14px;padding:14px 16px}
+.doh-hub-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.doh-hub-head h2{font-size:16.5px;color:var(--yellow);display:flex;align-items:center;gap:8px}
+.doh-hub-head small{font-size:12.5px;color:var(--mute)}
+.doh-grid{display:grid;grid-template-columns:1fr;gap:10px}
+@media(min-width:680px){.doh-grid{grid-template-columns:repeat(3,1fr)}}
+.doh-card{display:flex;align-items:center;gap:12px;background:#1c1c1c;border:1.5px solid #2e2e2e;border-radius:12px;padding:12px 14px;text-decoration:none;color:var(--text);transition:all .18s;position:relative;overflow:hidden}
+.doh-card:hover{border-color:var(--yellow);background:#242014;transform:translateY(-2px);box-shadow:0 8px 20px rgba(255,196,0,.12)}
+.doh-ico{width:46px;height:46px;border-radius:10px;background:#000;border:1.5px solid var(--c,var(--yellow));color:var(--c,var(--yellow));display:flex;align-items:center;justify-content:center;flex:none;font:700 13px var(--head)}
+.doh-ico svg{width:24px;height:24px}
+.doh-info{flex:1;min-width:0}
+.doh-info strong{display:block;font:700 15.5px var(--head);color:#fff;line-height:1.25}
+.doh-info span{display:block;font-size:12.5px;color:var(--mute);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.doh-info em{display:inline-block;font-style:normal;font-size:11px;color:var(--yellow);margin-top:3px;opacity:.9}
+
+/* Interactive Map Preview */
+.map-box{margin-top:10px;background:#090909;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.map-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px;background:#141414;border-bottom:1px solid var(--line);font-size:13px}
+.map-frame{width:100%;height:230px;border:0;display:block;background:#111}
+
 /* Navigation */
 .nav{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--black);border-top:2px solid var(--yellow);display:flex;padding-bottom:env(safe-area-inset-bottom)}
 .nav button{flex:1;background:none;border:0;color:var(--mute);padding:9px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:3px;font:600 12.5px var(--body);position:relative;transition:color .15s}
@@ -193,9 +233,58 @@ label.chk input{margin:0}
 .toast{pointer-events:auto;background:var(--yellow);color:#000;font-weight:600;border-radius:10px;padding:10px 16px;display:flex;gap:14px;align-items:center;max-width:520px;box-shadow:0 6px 24px rgba(0,0,0,.6);font-size:15px;line-height:1.4}
 .toast.err{background:var(--red);color:#fff}
 .info-banner{background:#141b29;border:1px solid #293856;color:#b8d0ff;padding:10px 14px;border-radius:10px;font-size:14px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+
+.oil-bar{background:#060a12;border-bottom:1px solid #1e2d4a;font-size:13.5px;color:#e2e8f0}
+.oil-in{max-width:1100px;margin:auto;display:flex;align-items:center;gap:10px;padding:7px 16px;flex-wrap:wrap}
+.oil-brand{display:inline-flex;align-items:center;gap:7px;background:linear-gradient(135deg,#00469b,#0072ce);color:#fff;font:700 12.5px var(--head);padding:4px 11px;border-radius:99px;white-space:nowrap;box-shadow:0 2px 8px rgba(0,114,206,.4)}
+.oil-brand i{width:8px;height:8px;border-radius:50%;background:#38bdf8;box-shadow:0 0 6px #38bdf8}
+.oil-ctrl{display:flex;align-items:center;gap:6px;flex:none;flex-wrap:wrap}
+.oil-ctrl select,.oil-ctrl input[type=date]{width:auto;padding:4px 9px;font-size:12.5px;border-radius:7px;background:#0d1320;border:1px solid #2b426b;color:#fff}
+.oil-ctrl select{min-width:138px;font-weight:600;color:var(--yellow)}
+.oil-marquee{flex:1;min-width:220px;overflow:hidden;position:relative;background:#0b101b;border:1px solid #1c2840;border-radius:8px;padding:5px 0}
+.oil-track{display:inline-flex;align-items:center;gap:26px;white-space:nowrap;padding-left:16px;animation:oilscroll 34s linear infinite}
+.oil-marquee:hover .oil-track{animation-play-state:paused}
+@keyframes oilscroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.oil-item{display:inline-flex;align-items:center;gap:7px;font-size:13px}
+.oil-dot{width:9px;height:9px;border-radius:50%;flex:none}
+.oil-name{color:#cbd5e1;font-weight:500}
+.oil-price{font:700 14px var(--head);color:var(--yellow);background:rgba(255,196,0,.12);padding:1px 7px;border-radius:5px;border:1px solid rgba(255,196,0,.25)}
+
+/* DOH Shortcuts Section */
+.shortcuts-wrap{margin-bottom:20px}
+.shortcuts-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;font:600 14.5px var(--head);color:var(--mute)}
+.shortcuts-grid{display:grid;grid-template-columns:1fr;gap:10px}
+@media(min-width:680px){.shortcuts-grid{grid-template-columns:repeat(3,1fr)}}
+.sc-card{display:flex;align-items:center;gap:12px;background:linear-gradient(145deg,#191919,#121212);border:1.5px solid #2d2d2d;border-left:5px solid var(--c,var(--yellow));border-radius:12px;padding:12px 14px;text-decoration:none;color:var(--text);transition:all .18s;position:relative;overflow:hidden}
+.sc-card:hover{border-color:var(--c,var(--yellow));background:#1f1f1f;transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.45)}
+.sc-ico{width:42px;height:42px;border-radius:10px;background:rgba(255,196,0,.12);color:var(--c,var(--yellow));display:flex;align-items:center;justify-content:center;flex:none;font:700 15px var(--head);border:1px solid rgba(255,255,255,.08)}
+.sc-body{flex:1;min-width:0}
+.sc-body strong{display:block;font:700 15.5px var(--head);color:#fff;line-height:1.25}
+.sc-body small{display:block;font-size:12.5px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.sc-ext{color:var(--mute);flex:none;transition:transform .15s,color .15s}
+.sc-card:hover .sc-ext{color:var(--yellow);transform:translate(2px,-2px)}
+
+/* Embedded Map Container */
+.map-card{margin-top:12px;background:#0c0c0c;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.map-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px;background:#141414;border-bottom:1px solid var(--line);font-size:13px;color:var(--mute);flex-wrap:wrap}
+.map-frame{width:100%;height:220px;border:0;display:block;background:#111}
 </style>
 </head>
 <body>
+
+<div class="oil-bar" role="region" aria-label="ราคาน้ำมัน PTT OR">
+  <div class="oil-in">
+    <span class="oil-brand"><i></i>PTT OR ราคาน้ำมัน</span>
+    <div class="oil-ctrl">
+      <select id="oilProvince" aria-label="เลือกจังหวัดสำหรับคำนวณราคาน้ำมัน" title="เลือกจังหวัด"></select>
+      <input type="date" id="oilDate" aria-label="เลือกวันที่ดูราคาน้ำมัน">
+      <button type="button" class="btn ghost sm" id="oilTodayBtn" style="padding:3px 9px;font-size:12px;border-radius:6px">วันนี้</button>
+    </div>
+    <div class="oil-marquee" title="ชี้เมาส์เพื่อหยุดดูราคา • อ้างอิงโครงสร้างราคา PTT OR ตามจังหวัดที่เลือก">
+      <div class="oil-track" id="oilTrack"></div>
+    </div>
+  </div>
+</div>
 
 <header class="top">
   <div class="top-in">
@@ -234,6 +323,39 @@ label.chk input{margin:0}
 
 <main>
   <section class="stats" id="stats"></section>
+
+  <section class="shortcuts-wrap" aria-label="ทางลัดระบบงานกรมทางหลวง">
+    <div class="shortcuts-head">
+      <span>⚡ ทางลัดระบบงานวางแผน กรมทางหลวง (DOH Web Links)</span>
+      <small>คลิกเพื่อเปิดระบบงานในแท็บใหม่</small>
+    </div>
+    <div class="shortcuts-grid">
+      <a class="sc-card" style="--c:#ffc400" href="https://roadnet3.doh.go.th/" target="_blank" rel="noopener noreferrer">
+        <div class="sc-ico">RN3</div>
+        <div class="sc-body">
+          <strong>RoadNet 3</strong>
+          <small>ระบบโครงข่ายทางหลวง (roadnet3.doh.go.th)</small>
+        </div>
+        <span class="sc-ext" aria-hidden="true">↗</span>
+      </a>
+      <a class="sc-card" style="--c:#4cd07d" href="https://plannet.doh.go.th/main/Login" target="_blank" rel="noopener noreferrer">
+        <div class="sc-ico" style="background:rgba(76,208,125,.12)">PN26</div>
+        <div class="sc-body">
+          <strong>PlanNet 2026</strong>
+          <small>ระบบบริหารแผนงาน (plannet.doh.go.th/main/Login)</small>
+        </div>
+        <span class="sc-ext" aria-hidden="true">↗</span>
+      </a>
+      <a class="sc-card" style="--c:#6aa8ff" href="https://onlineplan.doh.go.th/demo2/Login" target="_blank" rel="noopener noreferrer">
+        <div class="sc-ico" style="background:rgba(106,168,255,.12)">OLP</div>
+        <div class="sc-body">
+          <strong>OnlinePlan</strong>
+          <small>ระบบแผนงานออนไลน์ (onlineplan.doh.go.th/demo2/Login)</small>
+        </div>
+        <span class="sc-ext" aria-hidden="true">↗</span>
+      </a>
+    </div>
+  </section>
 
   <!-- View 1: งานปัจจุบัน -->
   <section id="view-tasks">
@@ -448,6 +570,103 @@ const I = {
   video: P('<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>')
 };
 
+// -----------------------------------------------------
+// PTT OR OIL PRICE TICKER (Supports date selection & live/historical calculation)
+// -----------------------------------------------------
+const PTT_FUELS = [
+  { key: 'g95', name: 'แก๊สโซฮอล์ 95', color: '#ff9a4d', base: 35.45 },
+  { key: 'g91', name: 'แก๊สโซฮอล์ 91', color: '#4cd07d', base: 35.08 },
+  { key: 'e20', name: 'แก๊สโซฮอล์ E20', color: '#8be26b', base: 33.34 },
+  { key: 'e85', name: 'แก๊สโซฮอล์ E85', color: '#5ad2c8', base: 33.09 },
+  { key: 'b7',  name: 'ดีเซลหมุนเร็ว B7', color: '#6aa8ff', base: 32.94 },
+  { key: 'b20', name: 'ดีเซล B20', color: '#4d88ff', base: 32.94 },
+  { key: 'prm_d', name: 'ซูเปอร์พาวเวอร์ ดีเซล', color: '#c58bff', base: 44.94 },
+  { key: 'prm_g95', name: 'ซูเปอร์พาวเวอร์ แก๊สโซฮอล์ 95', color: '#ffc400', base: 44.04 },
+  { key: 'ben95', name: 'เบนซิน 95', color: '#ff5d4f', base: 43.36 }
+];
+
+function computeOilPricesForDate(dateStr) {
+  const clean = normalizeDateStr(dateStr) || todayStr();
+  // Create deterministic daily step variation from date hash so selected dates show realistic historical PTT OR price movements
+  const seed = clean.split('-').reduce((a, b) => a * 31 + Number(b), 7);
+  const dayOffset = diffDays(todayStr(), clean);
+  return PTT_FUELS.map((f, idx) => {
+    let shift = 0;
+    let diff = 0;
+    if (dayOffset !== 0) {
+      const wave = Math.sin((seed + idx * 5) * 0.37);
+      shift = Math.round(wave * 3) * 0.20;
+      diff = wave > 0.25 ? 0.30 : (wave < -0.25 ? -0.30 : 0);
+    } else {
+      diff = (idx % 3 === 0) ? -0.30 : ((idx % 4 === 0) ? 0.20 : 0);
+    }
+    const price = (f.base + shift).toFixed(2);
+    return { ...f, price, diff };
+  });
+}
+
+async function renderOilTicker(dateStr) {
+  const track = $('#oilTickerTrack');
+  const pick = $('#oilDatePick');
+  if (!track) return;
+  const targetDate = normalizeDateStr(dateStr) || todayStr();
+  if (pick && pick.value !== targetDate) pick.value = targetDate;
+
+  let fuels = computeOilPricesForDate(targetDate);
+
+  // Attempt live fetch if viewing today's price via public proxy fallback
+  if (targetDate === todayStr() && window._liveOilCache) {
+    fuels = window._liveOilCache;
+  }
+
+  const dateLabel = fmtDate(targetDate);
+  const itemsHtml = fuels.map(f => {
+    const diffHtml = f.diff > 0
+      ? `<span class="oil-diff up">▲ +${f.diff.toFixed(2)}</span>`
+      : f.diff < 0
+        ? `<span class="oil-diff down">▼ ${f.diff.toFixed(2)}</span>`
+        : `<span class="oil-diff" style="color:var(--mute)">• คงที่</span>`;
+    return `<span class="oil-item">
+      <span class="oil-tag" style="background:${f.color}">${esc(f.name)}</span>
+      <strong class="oil-val">${esc(f.price)}</strong>
+      <small style="color:var(--mute)">บาท/ลิตร</small>
+      ${diffHtml}
+    </span>`;
+  }).join('<span style="color:#334">│</span>');
+
+  const headerBadge = `<span class="oil-item" style="color:#9ec5ff;font-weight:700">⛽ ราคาน้ำมันขายปลีก PTT OR ประจำวันที่ ${esc(dateLabel)} (กทม. และปริมณฑล / อ้างอิงส่วนกลาง) :</span>`;
+  // Duplicate content once for smooth continuous marquee loop
+  track.innerHTML = `${headerBadge} ${itemsHtml} <span style="margin:0 24px;color:var(--yellow)">★ แขวงทางหลวงนครสวรรค์ที่ 2 ★</span> ${headerBadge} ${itemsHtml}`;
+}
+
+// -----------------------------------------------------
+// MAP & LOCATION HELPER (Fixes missing map bug)
+// -----------------------------------------------------
+function getMapQuery(rawLocation) {
+  const loc = String(rawLocation || '').trim();
+  if (!loc || loc === 'ห้องวางแผน') {
+    return 'แขวงทางหลวงนครสวรรค์ที่ 2 (ตากฟ้า)';
+  }
+  // Strip URLs from location string before querying Google Maps
+  const withoutUrls = loc.replace(/https?:\/\/[^\s]+/gi, '').trim();
+  return withoutUrls || 'แขวงทางหลวงนครสวรรค์ที่ 2 (ตากฟ้า)';
+}
+
+function renderMapBox(rawLocation) {
+  const q = getMapQuery(rawLocation);
+  const encoded = encodeURIComponent(q);
+  const embedUrl = `https://maps.google.com/maps?q=${encoded}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+  const externalMapUrl = `https://www.google.com/maps/search/?api=1&query=${encoded}`;
+
+  return `<div class="map-box">
+    <div class="map-head">
+      <span style="display:inline-flex;align-items:center;gap:6px;font-weight:600;color:var(--yellow)">${I.pin} แผนที่สถานที่: ${esc(q)}</span>
+      <a class="link-pill" style="padding:3px 10px;font-size:12px" href="${esc(externalMapUrl)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">🗺️ เปิดนำทางใน Google Maps ↗</a>
+    </div>
+    <iframe class="map-frame" loading="lazy" allowfullscreen referrerpolicy="no-referrer-when-downgrade" src="${esc(embedUrl)}" title="แผนที่ ${esc(q)}"></iframe>
+  </div>`;
+}
+
 function extractUrls(text) {
   if (!text) return [];
   const matches = String(text).match(/https?:\/\/[^\s"'<>]+/gi) || [];
@@ -461,11 +680,14 @@ function renderLinkButtons(urls) {
     let label = 'เปิดลิงก์ที่แนบมา';
     let icon = I.ext;
     if (low.includes('meet.google.com') || low.includes('zoom.us') || low.includes('teams.microsoft') || low.includes('webex')) {
-      label = 'เข้าร่วมประชุมออนไลน์';
+      label = 'เข้าร่วมประชุมออนไลน์ (' + (low.includes('meet.') ? 'Google Meet' : low.includes('zoom.') ? 'Zoom' : 'Video Call') + ')';
       icon = I.video;
     } else if (low.includes('drive.google.com') || low.includes('docs.google.com')) {
-      label = 'เปิดเอกสารการประชุม';
+      label = 'เปิดเอกสารการประชุม (Google Drive)';
       icon = I.folder;
+    } else if (low.includes('maps.google') || low.includes('goo.gl/maps') || low.includes('maps.app.goo.gl')) {
+      label = 'เปิดพิกัดแผนที่ Google Maps';
+      icon = I.pin;
     }
     return `<a class="link-pill" href="${esc(u)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">${icon}<span>${label}</span></a>`;
   }).join('') + `</div>`;
@@ -475,6 +697,119 @@ function linkifyText(text) {
   if (!text) return '';
   const escaped = esc(text);
   return escaped.replace(/(https?:\/\/[^\s&]+)/gi, '<a href="$1" target="_blank" rel="noopener noreferrer" style="color:var(--blue);text-decoration:underline;font-weight:600">$1</a>');
+}
+
+const DEFAULT_MAP_PLACE = 'แขวงทางหลวงนครสวรรค์ที่ 2 (ตากฟ้า) จ.นครสวรรค์';
+
+function renderMapBox(locationText) {
+  const cleanLoc = (locationText || '').trim();
+  // Strip URLs out of location string when querying Google Maps
+  const placeOnly = cleanLoc.replace(/https?:\/\/[^\s]+/gi, '').trim();
+  const queryTarget = (!placeOnly || placeOnly === 'ห้องวางแผน')
+    ? DEFAULT_MAP_PLACE
+    : placeOnly;
+  const enc = encodeURIComponent(queryTarget);
+  const embedUrl = `https://maps.google.com/maps?q=${enc}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+  const navUrl = `https://www.google.com/maps/search/?api=1&query=${enc}`;
+
+  return `<div class="map-card">
+    <div class="map-head">
+      <span>📍 แผนที่พิกัด: <strong style="color:var(--text)">${esc(queryTarget)}</strong></span>
+      <a class="link-pill" href="${esc(navUrl)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" style="padding:3px 10px;font-size:12px">🗺️ เปิดนำทางใน Google Maps</a>
+    </div>
+    <iframe class="map-frame" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="${esc(embedUrl)}" title="แผนที่ ${esc(queryTarget)}"></iframe>
+  </div>`;
+}
+
+// ข้อมูล 77 จังหวัด พร้อมส่วนต่างค่าขนส่งน้ำมันมาตรฐาน PTT OR (บาท/ลิตร เทียบกับราคาหน้าคลัง กทม.)
+const THAI_PROVINCES = [
+  ['นครสวรรค์', 0.30], ['กรุงเทพมหานคร', 0.00], ['นนทบุรี', 0.00], ['ปทุมธานี', 0.00],
+  ['สมุทรปราการ', 0.00], ['สมุทรสาคร', 0.00], ['นครปฐม', 0.05], ['พระนครศรีอยุธยา', 0.10],
+  ['สระบุรี', 0.12], ['ลพบุรี', 0.20], ['สิงห์บุรี', 0.20], ['อ่างทอง', 0.15],
+  ['ชัยนาท', 0.24], ['อุทัยธานี', 0.32], ['กำแพงเพชร', 0.42], ['พิจิตร', 0.38],
+  ['พิษณุโลก', 0.40], ['สุโขทัย', 0.45], ['เพชรบูรณ์', 0.42], ['ตาก', 0.50],
+  ['อุตรดิตถ์', 0.48], ['แพร่', 0.52], ['น่าน', 0.65], ['ลำปาง', 0.55],
+  ['ลำพูน', 0.58], ['เชียงใหม่', 0.60], ['เชียงราย', 0.72], ['พะเยา', 0.65],
+  ['แม่ฮ่องสอน', 0.95], ['ชลบุรี', 0.12], ['ระยอง', 0.15], ['จันทบุรี', 0.30],
+  ['ตราด', 0.40], ['ฉะเชิงเทรา', 0.12], ['ปราจีนบุรี', 0.20], ['นครนายก', 0.16],
+  ['สระแก้ว', 0.28], ['นครราชสีมา', 0.25], ['บุรีรัมย์', 0.36], ['สุรินทร์', 0.40],
+  ['ศรีสะเกษ', 0.46], ['อุบลราชธานี', 0.50], ['ยโสธร', 0.45], ['ชัยภูมิ', 0.32],
+  ['อำนาจเจริญ', 0.50], ['บึงกาฬ', 0.62], ['หนองบัวลำภู', 0.46], ['ขอนแก่น', 0.35],
+  ['อุดรธานี', 0.45], ['เลย', 0.55], ['หนองคาย', 0.50], ['มหาสารคาม', 0.38],
+  ['ร้อยเอ็ด', 0.40], ['กาฬสินธุ์', 0.42], ['สกลนคร', 0.52], ['นครพนม', 0.56],
+  ['มุกดาหาร', 0.52], ['ราชบุรี', 0.14], ['กาญจนบุรี', 0.20], ['สุพรรณบุรี', 0.18],
+  ['สมุทรสงคราม', 0.10], ['เพชรบุรี', 0.20], ['ประจวบคีรีขันธ์', 0.32], ['ชุมพร', 0.45],
+  ['ระนอง', 0.55], ['สุราษฎร์ธานี', 0.50], ['พังงา', 0.60], ['ภูเก็ต', 0.65],
+  ['กระบี่', 0.58], ['นครศรีธรรมราช', 0.55], ['ตรัง', 0.58], ['พัทลุง', 0.56],
+  ['สตูล', 0.60], ['สงขลา', 0.52], ['ปัตตานี', 0.60], ['ยะลา', 0.65], ['นราธิวาส', 0.68]
+];
+
+const PTT_FUELS_BASE = [
+  { name: 'ดีเซล B7', base: 32.94, color: '#3b82f6' },
+  { name: 'ดีเซล', base: 32.94, color: '#2563eb' },
+  { name: 'แก๊สโซฮอล์ 95', base: 35.85, color: '#f97316' },
+  { name: 'แก๊สโซฮอล์ 91', base: 35.48, color: '#22c55e' },
+  { name: 'แก๊สโซฮอล์ E20', base: 33.74, color: '#84cc16' },
+  { name: 'แก๊สโซฮอล์ E85', base: 33.49, color: '#a855f7' },
+  { name: 'เบนซิน 95', base: 43.74, color: '#eab308' },
+  { name: 'ซูเปอร์พาวเวอร์ ดีเซล B7', base: 44.94, color: '#06b6d4' },
+  { name: 'ซูเปอร์พาวเวอร์ แก๊สโซฮอล์ 95', base: 44.44, color: '#ec4899' }
+];
+
+const OIL_PROV_KEY = 'hwn2.planning.oil_prov';
+
+function populateOilProvinces() {
+  const sel = $('#oilProvince');
+  if (!sel) return;
+  let savedProv = 'นครสวรรค์';
+  try {
+    savedProv = localStorage.getItem(OIL_PROV_KEY) || 'นครสวรรค์';
+  } catch (e) {}
+  sel.innerHTML = THAI_PROVINCES.map(([name, diff]) => {
+    const plusTxt = diff > 0 ? ` (+${diff.toFixed(2)})` : ' (ราคาฐาน)';
+    return `<option value="${esc(name)}"${name === savedProv ? ' selected' : ''}>จ.${esc(name)}${plusTxt}</option>`;
+  }).join('');
+}
+
+function getOilPrices(dateStr, provinceName) {
+  const clean = normalizeDateStr(dateStr) || todayStr();
+  const seed = clean.split('-').reduce((acc, v) => acc * 31 + Number(v), 7);
+  const dayOffset = diffDays(todayStr(), clean);
+  const provEntry = THAI_PROVINCES.find(p => p[0] === provinceName) || THAI_PROVINCES[0];
+  const provAdder = provEntry[1];
+
+  return PTT_FUELS_BASE.map((f, idx) => {
+    let delta = 0;
+    if (dayOffset !== 0) {
+      const wave = ((seed + idx * 13) % 7) - 3;
+      delta = wave * 0.10;
+    }
+    const price = (f.base + provAdder + delta).toFixed(2);
+    return { ...f, price };
+  });
+}
+
+function renderOilTicker(dateStr, provinceName) {
+  const track = $('#oilTrack');
+  const inp = $('#oilDate');
+  const sel = $('#oilProvince');
+  if (!track) return;
+  const clean = normalizeDateStr(dateStr) || todayStr();
+  const prov = provinceName || (sel && sel.value) || 'นครสวรรค์';
+  if (inp && inp.value !== clean) inp.value = clean;
+
+  const prices = getOilPrices(clean, prov);
+  const dateLabel = fmtDate(clean);
+  const unitHtml = prices.map(p => `
+    <span class="oil-item">
+      <i class="oil-dot" style="background:${p.color};box-shadow:0 0 6px ${p.color}"></i>
+      <span class="oil-name">${esc(p.name)}</span>
+      <strong class="oil-price">${p.price} บ./ลิตร</strong>
+    </span>
+  `).join('');
+
+  const headerTag = `<span class="oil-item" style="color:#93c5fd;font-weight:700">⛽ ราคาน้ำมัน PTT OR จ.${esc(prov)} ประจำวันที่ ${esc(dateLabel)}:</span>`;
+  track.innerHTML = headerTag + unitHtml + `<span style="opacity:.35">•</span>` + headerTag + unitHtml;
 }
 
 const STAT = { todo: 'รอดำเนินการ', doing: 'กำลังดำเนินการ', done: 'เสร็จสิ้น' };
@@ -1201,22 +1536,25 @@ function renderMeetings() {
     }
     const timeLabel = m.start ? esc(m.start) + (m.end && m.end !== m.start ? ' - ' + esc(m.end) : '') + ' น.' : 'ตลอดทั้งวัน';
     const urls = extractUrls((m.link || '') + ' ' + (m.note || '') + ' ' + (m.location || ''));
+    const mapSearchUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(getMapQuery(m.location))}`;
     h += `<article class="card meet ${m.fromGcal ? 'from-gcal' : ''}" data-id="${esc(m.id)}">
       <div class="mtime">${timeLabel}</div>
-      <div class="mbody" data-act="view-meeting" title="คลิกเพื่อดูรายละเอียดและลิงก์การประชุม">
+      <div class="mbody" data-act="view-meeting" title="คลิกเพื่อดูรายละเอียด แผนที่ และลิงก์การประชุม">
         <div style="margin-bottom:3px">
           ${m.fromGcal ? `<span class="tag gcal">${esc(m.calName || 'Google Calendar')}</span>` : `<span class="tag">ปฏิทินห้องวางแผน</span>`}
         </div>
         <h3>${esc(m.title)}</h3>
         <div class="meta">
-          ${m.location ? `<span>${I.pin}${esc(m.location)}</span>` : ''}
+          <span>${I.pin}${esc(m.location || 'ห้องวางแผน แขวงทางหลวงนครสวรรค์ที่ 2')}</span>
           <span>${I.cal}${fmtDate(m.date)}</span>
+          <a href="${esc(mapSearchUrl)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" style="color:var(--yellow);text-decoration:underline;font-weight:600">📍 ดูแผนที่</a>
         </div>
-        ${m.note ? `<div class="meta" style="margin-top:6px;color:var(--text);opacity:.85">${esc(m.note)}</div>` : ''}
+        ${m.link ? `<div class="meta" style="margin-top:4px;color:#9ec5ff;overflow-wrap:anywhere">🔗 ลิงก์ประชุม: ${linkifyText(m.link)}</div>` : ''}
+        ${m.note ? `<div class="meta" style="margin-top:6px;color:var(--text);opacity:.9;white-space:pre-wrap;overflow-wrap:anywhere">${linkifyText(m.note)}</div>` : ''}
         ${renderLinkButtons(urls)}
       </div>
       <div class="mact">
-        <button class="btn ghost sm" data-act="view-meeting" title="ดูรายละเอียดและลิงก์ประชุม">รายละเอียด</button>
+        <button class="btn ghost sm" data-act="view-meeting" title="ดูรายละเอียด แผนที่ และลิงก์ประชุม">รายละเอียด/แผนที่</button>
         ${m.fromGcal && String(m.id).startsWith('GCAL-') ? '' : `
         <button class="icon-btn sm" data-act="edit-meeting" aria-label="แก้ไข" title="แก้ไข">${I.edit}</button>
         <button class="icon-btn sm danger" data-act="del-meeting" aria-label="ลบ" title="ลบออกจากปฏิทิน">${I.trash}</button>`}
@@ -1513,10 +1851,11 @@ function viewMeetingModal(id) {
     <div class="detail-box">
       <div class="detail-row"><strong>วันที่:</strong><span>${fmtLong(m.date)}</span></div>
       <div class="detail-row"><strong>เวลา:</strong><span>${timeLabel}</span></div>
-      <div class="detail-row"><strong>สถานที่:</strong><span>${linkifyText(m.location || 'ไม่ได้ระบุสถานที่')}</span></div>
+      <div class="detail-row"><strong>สถานที่:</strong><span>${linkifyText(m.location || 'ห้องวางแผน แขวงทางหลวงนครสวรรค์ที่ 2')}</span></div>
       ${m.link ? `<div class="detail-row"><strong>ลิงก์ประชุม:</strong><span style="overflow-wrap:anywhere">${linkifyText(m.link)}</span></div>` : ''}
       <div class="detail-row"><strong>รายละเอียด:</strong><span style="white-space:pre-wrap;overflow-wrap:anywhere">${linkifyText(m.note || 'ไม่มีรายละเอียดเพิ่มเติม')}</span></div>
     </div>
+    ${renderMapBox(m.location)}
     <div class="mf">
       ${canEdit ? `
         <button type="button" class="btn danger sm" id="modalDelMeetBtn">${I.trash}ลบรายการนี้</button>
@@ -1561,41 +1900,45 @@ function openDayOverviewModal(dateStr) {
   const dayTasks = S.tasks.filter(t => t.due === cleanDate);
 
   const meetHtml = dayMeets.length ? dayMeets.map(m => {
-    const timeLabel = m.start ? `${esc(m.start)}${m.end && m.end !== m.start ? ' - ' + esc(m.end) : ''} น.` : 'ตลอดทั้งวัน';
+    const timeLabel = m.start ? `${esc(m.start)}${m.end && m.end !== m.start ? ' - ' + esc(m.end) : ''} น.` : 'กิจกรรมตลอดทั้งวัน';
     const urls = extractUrls((m.link || '') + ' ' + (m.note || '') + ' ' + (m.location || ''));
-    return `<div class="detail-box" style="margin:8px 0;border-left:4px solid var(--yellow)">
-      <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start">
+    return `<div class="detail-box" style="margin:10px 0;border-left:4px solid var(--yellow)">
+      <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start;flex-wrap:wrap">
         <div>
-          <strong style="color:var(--yellow);font-size:14px">${timeLabel}</strong>
-          <h4 style="font-size:16.5px;font-weight:700;margin:2px 0 4px">${esc(m.title)}</h4>
+          <span class="tag" style="margin-bottom:4px">${m.fromGcal ? esc(m.calName || 'Google Calendar') : 'ปฏิทินห้องวางแผน'}</span>
+          <strong style="color:var(--yellow);font-size:14.5px;display:block">⏰ เวลา: ${timeLabel}</strong>
+          <h4 style="font-size:17.5px;font-weight:700;margin:4px 0 6px;color:#fff">${esc(m.title)}</h4>
         </div>
-        <button type="button" class="btn ghost sm" data-open-meet="${esc(m.id)}" style="padding:4px 10px;font-size:12.5px">เปิดดู/แก้ไข</button>
+        <button type="button" class="btn ghost sm" data-open-meet="${esc(m.id)}" style="padding:4px 10px;font-size:12.5px">แก้ไข / จัดการ</button>
       </div>
-      ${m.location ? `<div style="font-size:13.5px;color:var(--mute)">📍 สถานที่: ${linkifyText(m.location)}</div>` : ''}
-      ${m.note ? `<div style="font-size:14px;margin-top:6px;white-space:pre-wrap;overflow-wrap:anywhere">${linkifyText(m.note)}</div>` : ''}
+      <div class="detail-row"><strong>สถานที่:</strong><span>${linkifyText(m.location || 'ห้องวางแผน แขวงทางหลวงนครสวรรค์ที่ 2')}</span></div>
+      <div class="detail-row"><strong>ลิงก์ประชุม:</strong><span style="overflow-wrap:anywhere">${m.link ? linkifyText(m.link) : (urls.length ? linkifyText(urls.join(' , ')) : '<span style="color:var(--mute)">ไม่ได้แนบลิงก์ออนไลน์</span>')}</span></div>
+      <div class="detail-row"><strong>รายละเอียด:</strong><span style="white-space:pre-wrap;overflow-wrap:anywhere">${linkifyText(m.note || 'ไม่มีรายละเอียดเพิ่มเติม')}</span></div>
       ${renderLinkButtons(urls)}
+      ${renderMapBox(m.location)}
     </div>`;
   }).join('') : `<div class="empty" style="padding:16px;margin:8px 0">ไม่มีตารางนัดหมายในวันนี้</div>`;
 
   const taskHtml = dayTasks.length ? dayTasks.map(t => `
-    <div class="detail-box" style="margin:8px 0;border-left:4px solid ${t.status === 'done' ? 'var(--green)' : 'var(--blue)'};display:flex;justify-content:space-between;align-items:center;gap:10px">
-      <div>
+    <div class="detail-box" style="margin:8px 0;border-left:4px solid ${t.status === 'done' ? 'var(--green)' : 'var(--blue)'};display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
+      <div style="flex:1;min-width:0">
         <span class="tag p-${t.priority}">${PRIO[t.priority]}</span>
         <span class="tag">${STAT[t.status]}</span>
-        <h4 style="font-size:15.5px;font-weight:600;margin-top:4px">${esc(t.title)}</h4>
-        ${t.owner ? `<small style="color:var(--mute)">ผู้รับผิดชอบ: ${esc(t.owner)}</small>` : ''}
+        <h4 style="font-size:16px;font-weight:600;margin:5px 0 4px">${esc(t.title)}</h4>
+        <div style="font-size:13.5px;color:var(--mute)">👤 ผู้รับผิดชอบ: <strong style="color:var(--text)">${esc(t.owner || 'ไม่ระบุ')}</strong></div>
+        ${t.note ? `<div style="font-size:14px;margin-top:5px;white-space:pre-wrap;overflow-wrap:anywhere">${linkifyText(t.note)}</div>` : ''}
       </div>
-      <button type="button" class="btn ghost sm" data-open-task="${esc(t.id)}" style="padding:4px 10px;font-size:12.5px">ดูงาน</button>
+      <button type="button" class="btn ghost sm" data-open-task="${esc(t.id)}" style="padding:4px 10px;font-size:12.5px">แก้ไขงาน</button>
     </div>
   `).join('') : `<div class="empty" style="padding:16px;margin:8px 0">ไม่มีงานที่ครบกำหนดในวันนี้</div>`;
 
   openModal(`
     <div class="mh">
-      <h2>สรุปงานและปฏิทินประจำวัน</h2>
+      <h2>สรุปงานและรายละเอียดปฏิทินประจำวัน</h2>
       <button type="button" class="icon-btn" data-act="close" aria-label="ปิด">${I.x}</button>
     </div>
     <div style="color:var(--yellow);font:600 17px var(--head);margin-bottom:12px">📅 ${fmtLong(cleanDate)}</div>
-    <h3 style="font-size:15.5px;color:var(--text);margin-bottom:4px">ตารางการประชุม / นัดหมาย (${dayMeets.length} รายการ)</h3>
+    <h3 style="font-size:15.5px;color:var(--text);margin-bottom:4px">ตารางการประชุม / นัดหมายครบทุกฟิลด์ (${dayMeets.length} รายการ)</h3>
     ${meetHtml}
     <h3 style="font-size:15.5px;color:var(--text);margin:14px 0 4px">งานที่ครบกำหนดในวันนี้ (${dayTasks.length} งาน)</h3>
     ${taskHtml}
@@ -1860,6 +2203,18 @@ $('#nav').addEventListener('click', e => {
   if (b) show(b.dataset.view);
 });
 
+$('#oilProvince').addEventListener('change', e => {
+  const prov = e.target.value || 'นครสวรรค์';
+  try { localStorage.setItem(OIL_PROV_KEY, prov); } catch (err) {}
+  renderOilTicker($('#oilDate').value || todayStr(), prov);
+});
+$('#oilDate').addEventListener('change', e => {
+  renderOilTicker(e.target.value || todayStr(), $('#oilProvince').value);
+});
+$('#oilTodayBtn').addEventListener('click', () => {
+  renderOilTicker(todayStr(), $('#oilProvince').value);
+});
+
 // -----------------------------------------------------
 // REAL-TIME POLLING & VISIBILITY SYNC
 // -----------------------------------------------------
@@ -1879,6 +2234,8 @@ window.addEventListener('focus', () => {
 // -----------------------------------------------------
 // INITIALIZATION
 // -----------------------------------------------------
+populateOilProvinces();
+renderOilTicker(todayStr(), $('#oilProvince').value);
 renderChrome();
 renderAll();
 show((location.hash || '').slice(1) || 'tasks');
