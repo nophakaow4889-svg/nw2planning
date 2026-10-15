@@ -142,9 +142,18 @@ label.chk input{margin:0}
 .meet.from-gcal{border-left-color:var(--blue)}
 .mtime{flex:none;width:96px;font:600 15px var(--head);color:var(--yellow);padding-top:2px}
 .meet.from-gcal .mtime{color:var(--blue)}
-.mbody{flex:1;min-width:0}
-.mbody h3{font-size:17px;margin-bottom:4px;overflow-wrap:anywhere}
+.mbody{flex:1;min-width:0;cursor:pointer}
+.mbody:hover h3{color:var(--yellow)}
+.mbody h3{font-size:17px;margin-bottom:4px;overflow-wrap:anywhere;transition:color .15s}
 .mact{display:flex;gap:4px;flex:none}
+.filter-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px;background:var(--card);padding:12px 14px;border-radius:12px;border:1px solid var(--line)}
+.filter-bar select,.filter-bar input{width:auto;min-width:150px;padding:8px 12px;font-size:14.5px;background:#000}
+.filter-group{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.filter-group span{font-size:13.5px;color:var(--mute);font-weight:600;white-space:nowrap}
+.detail-box{background:#111;border:1px solid var(--line);border-radius:10px;padding:14px;margin:12px 0;font-size:15px;line-height:1.6}
+.detail-row{display:flex;gap:10px;margin-bottom:8px;align-items:flex-start}
+.detail-row:last-child{margin-bottom:0}
+.detail-row strong{color:var(--mute);min-width:95px;flex:none;font-weight:600}
 
 /* Read-only File Movement Feed */
 .alert{display:flex;gap:14px;align-items:flex-start;margin-bottom:0;border-left:5px solid var(--c,#a3a3a3);border-radius:4px 12px 12px 4px}
@@ -231,17 +240,23 @@ label.chk input{margin:0}
     <div class="vhead">
       <h2>ปฏิทินห้อง</h2>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn ghost sm" data-act="config-gcal" id="cfgGcalBtn">ตั้งค่าซิงค์ Google Calendar</button>
+        <button class="btn ghost sm" data-act="config-gcal" id="cfgGcalBtn">จัดการลิงก์ปฏิทิน (เพิ่ม/ลบ)</button>
         <button class="btn" data-act="add-meeting" id="addMeetBtn"></button>
       </div>
     </div>
     <div class="centerline"></div>
     <div class="info-banner" id="gcalBanner">
-      <span>ซิงค์ตารางนัดหมายจากฐานข้อมูลกลางและ Google Calendar อัตโนมัติ (โหมดอ่านอย่างเดียว ไม่กระทบปฏิทินต้นฉบับ)</span>
+      <span>คลิกที่รายการเพื่อดูรายละเอียด • ซิงค์ตารางนัดหมายทั้งขาไป-กลับจากฐานข้อมูลกลางและ Google Calendar อัตโนมัติ</span>
       <small id="m-sync" style="color:#9ec5ff;font-weight:600"></small>
     </div>
-    <div style="display:flex;margin-bottom:12px;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-      <div class="chips" id="m-chips"></div>
+    <div class="filter-bar">
+      <div class="chips" id="m-chips" style="flex:1"></div>
+      <div class="filter-group">
+        <span>เลือกเดือน:</span>
+        <select id="m-month" aria-label="เลือกเดือนเพื่อดูปฏิทิน">
+          <option value="all">ทุกเดือน</option>
+        </select>
+      </div>
     </div>
     <div id="m-list"></div>
   </section>
@@ -257,9 +272,34 @@ label.chk input{margin:0}
       <span>แสดงประวัติการสร้างและอัปเดตไฟล์จาก Google Drive ของส่วนกลาง (สำหรับเปิดดูเท่านั้น ไม่มีการแก้ไขหรือลบไฟล์ต้นฉบับ)</span>
       <small id="a-sync" style="color:#9ec5ff;font-weight:600"></small>
     </div>
-    <div style="display:flex;margin-bottom:14px;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+    <div style="margin-bottom:12px">
       <div class="chips" id="a-chips"></div>
-      <input style="max-width:260px" id="a-search" type="search" placeholder="ค้นหาชื่อไฟล์หรือผู้แก้ไข..." aria-label="ค้นหาไฟล์">
+    </div>
+    <div class="filter-bar">
+      <div class="filter-group">
+        <span>ชนิดไฟล์:</span>
+        <select id="a-type" aria-label="กรองตามชนิดของไฟล์">
+          <option value="all">ทุกชนิดไฟล์ (ทั้งหมด)</option>
+          <option value="XLS">Excel / Spreadsheet (.xlsx, .csv)</option>
+          <option value="PDF">PDF Document (.pdf)</option>
+          <option value="DOC">Word / Document (.docx, .doc)</option>
+          <option value="PPT">PowerPoint / Slide (.pptx)</option>
+          <option value="IMG">รูปภาพ (.jpg, .png)</option>
+          <option value="FILE">ไฟล์อื่นๆ</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <span>ช่วงเวลา/วันที่:</span>
+        <select id="a-period" aria-label="กรองตามช่วงเวลาที่ไฟล์เคลื่อนไหว">
+          <option value="all">ทุกช่วงเวลา</option>
+          <option value="today">วันนี้</option>
+          <option value="7d">7 วันที่ผ่านมา</option>
+          <option value="30d">30 วันที่ผ่านมา</option>
+          <option value="custom">เลือกวันที่ระบุเอง...</option>
+        </select>
+        <input type="date" id="a-date" aria-label="เลือกวันที่ไฟล์เคลื่อนไหว" hidden>
+      </div>
+      <input style="flex:1;min-width:200px" id="a-search" type="search" placeholder="ค้นหาชื่อไฟล์ หรือผู้แก้ไข..." aria-label="ค้นหาไฟล์">
     </div>
     <div id="a-list" class="grid-list cols2"></div>
   </section>
@@ -413,10 +453,16 @@ const saveCache = () => {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(S)); } catch (e) {}
 };
 
-let gcalConfig = { icsUrl: '' };
+let gcalConfig = { calendars: [] };
 try {
   const gc = JSON.parse(localStorage.getItem(GCAL_CFG_KEY));
-  if (gc) gcalConfig = { ...gcalConfig, ...gc };
+  if (gc) {
+    if (Array.isArray(gc.calendars)) {
+      gcalConfig.calendars = gc.calendars;
+    } else if (gc.icsUrl) {
+      gcalConfig.calendars = [{ id: uid(), name: 'ปฏิทินหลัก', url: gc.icsUrl }];
+    }
+  }
 } catch (e) {}
 
 // -----------------------------------------------------
@@ -492,54 +538,57 @@ function parseICSDate(val) {
 }
 
 async function syncExternalGoogleCalendar() {
-  if (!gcalConfig.icsUrl) {
+  if (!Array.isArray(gcalConfig.calendars) || !gcalConfig.calendars.length) {
     S.gcalMeetings = [];
     return;
   }
-  try {
-    let targetUrl = gcalConfig.icsUrl.trim();
-    // If user entered a calendar email/ID instead of full URL, build public iCal URL
-    if (!targetUrl.startsWith('http') && targetUrl.includes('@')) {
-      targetUrl = `https://calendar.google.com/calendar/ical/${encodeURIComponent(targetUrl)}/public/basic.ics`;
+  const allEvents = [];
+  for (const cal of gcalConfig.calendars) {
+    if (!cal || !cal.url) continue;
+    try {
+      let targetUrl = cal.url.trim();
+      if (!targetUrl.startsWith('http') && targetUrl.includes('@')) {
+        targetUrl = `https://calendar.google.com/calendar/ical/${encodeURIComponent(targetUrl)}/public/basic.ics`;
+      }
+      const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
+      const res = await fetch(proxyUrl, { cache: 'no-store' });
+      if (!res.ok) continue;
+      const icsText = await res.text();
+      if (!icsText.includes('BEGIN:VCALENDAR')) continue;
+
+      const blocks = icsText.split('BEGIN:VEVENT').slice(1);
+      for (const blk of blocks) {
+        const getField = name => {
+          const m = blk.match(new RegExp(`^${name}(?:;[^:]*)?:(.*)$`, 'm'));
+          return m ? m[1].trim().replace(/\\n/g, '\n').replace(/\\,/g, ',') : '';
+        };
+        const uidVal = getField('UID') || uid();
+        const summary = getField('SUMMARY') || '(นัดหมายจาก Google Calendar)';
+        const location = getField('LOCATION') || '';
+        const desc = getField('DESCRIPTION') || '';
+        const dtStartRaw = (blk.match(/^DTSTART(?:;[^:]*)?:(.*)$/m) || [])[0] || '';
+        const dtEndRaw = (blk.match(/^DTEND(?:;[^:]*)?:(.*)$/m) || [])[0] || '';
+
+        const st = parseICSDate(dtStartRaw);
+        const en = parseICSDate(dtEndRaw);
+
+        allEvents.push({
+          id: 'GCAL-' + uidVal,
+          title: summary,
+          date: st.date,
+          start: st.time,
+          end: en.time,
+          location: location,
+          note: desc,
+          calName: cal.name || 'Google Calendar',
+          fromGcal: true
+        });
+      }
+    } catch (err) {
+      console.warn('External Google Calendar sync warning:', err);
     }
-    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
-    const res = await fetch(proxyUrl, { cache: 'no-store' });
-    if (!res.ok) return;
-    const icsText = await res.text();
-    if (!icsText.includes('BEGIN:VCALENDAR')) return;
-
-    const events = [];
-    const blocks = icsText.split('BEGIN:VEVENT').slice(1);
-    for (const blk of blocks) {
-      const getField = name => {
-        const m = blk.match(new RegExp(`^${name}(?:;[^:]*)?:(.*)$`, 'm'));
-        return m ? m[1].trim().replace(/\\n/g, '\n').replace(/\\,/g, ',') : '';
-      };
-      const uidVal = getField('UID') || uid();
-      const summary = getField('SUMMARY') || '(นัดหมายจาก Google Calendar)';
-      const location = getField('LOCATION') || '';
-      const desc = getField('DESCRIPTION') || '';
-      const dtStartRaw = (blk.match(/^DTSTART(?:;[^:]*)?:(.*)$/m) || [])[0] || '';
-      const dtEndRaw = (blk.match(/^DTEND(?:;[^:]*)?:(.*)$/m) || [])[0] || '';
-
-      const st = parseICSDate(dtStartRaw);
-      const en = parseICSDate(dtEndRaw);
-
-      events.push({
-        id: 'GCAL-' + uidVal,
-        title: summary,
-        date: st.date,
-        start: st.time,
-        end: en.time,
-        location: location,
-        note: desc,
-        fromGcal: true
-      });
-    }
-    S.gcalMeetings = events;
-  } catch (err) {
-    console.warn('External Google Calendar sync warning:', err);
   }
+  S.gcalMeetings = allEvents;
 }
 
 // -----------------------------------------------------
@@ -796,7 +845,8 @@ async function sendToGAS(action, itemType, itemData) {
 // -----------------------------------------------------
 let tf = { q: '', st: 'all' };
 let mf = 'up';
-let af = { q: '', kind: 'all' };
+let mMonth = 'all';
+let af = { q: '', kind: 'all', ftype: 'all', period: 'all', date: '' };
 const views = ['tasks', 'meetings', 'alerts', 'settings'];
 
 function show(v) {
@@ -910,24 +960,54 @@ function renderTasks() {
   );
 }
 
+function updateMonthDropdown(allMeets) {
+  const sel = $('#m-month');
+  if (!sel) return;
+  const monthsSet = new Set();
+  const nowYm = todayStr().slice(0, 7);
+  monthsSet.add(nowYm);
+  for (let i = -2; i <= 6; i++) {
+    const d = new Date();
+    d.setMonth(d.getMonth() + i);
+    monthsSet.add(d.toLocaleDateString('sv-SE', { timeZone: TZ }).slice(0, 7));
+  }
+  allMeets.forEach(m => {
+    if (m.date && m.date.length >= 7) monthsSet.add(m.date.slice(0, 7));
+  });
+  const sortedMonths = [...monthsSet].sort();
+  const fmtYm = ym => {
+    const [y, m] = ym.split('-');
+    const dt = new Date(`${y}-${m}-01T00:00:00+07:00`);
+    return dt.toLocaleDateString('th-TH', { month: 'long', year: 'numeric', timeZone: TZ });
+  };
+  sel.innerHTML = `<option value="all"${mMonth === 'all' ? ' selected' : ''}>ทุกเดือน (ทั้งหมด)</option>` +
+    sortedMonths.map(ym => `<option value="${ym}"${mMonth === ym ? ' selected' : ''}>${fmtYm(ym)}</option>`).join('');
+}
+
 function renderMeetings() {
   const t = todayStr();
   const allMeets = getAllMeetings();
+  updateMonthDropdown(allMeets);
+
+  const monthFiltered = mMonth === 'all'
+    ? allMeets
+    : allMeets.filter(m => (m.date || '').slice(0, 7) === mMonth);
+
   const cnt = k => {
-    if (k === 'up') return allMeets.filter(m => m.date >= t).length;
-    if (k === 'past') return allMeets.filter(m => m.date < t).length;
-    return allMeets.length;
+    if (k === 'up') return monthFiltered.filter(m => m.date >= t).length;
+    if (k === 'past') return monthFiltered.filter(m => m.date < t).length;
+    return monthFiltered.length;
   };
   $('#m-chips').innerHTML = chips({ up: 'กำลังจะถึง', past: 'ที่ผ่านมาแล้ว', all: 'ทั้งหมด' }, mf, cnt, 'f-meet');
   $('#m-sync').textContent = S.lastSync ? 'ซิงค์ปฏิทินล่าสุด ' + ago(S.lastSync) : '';
 
-  let list = allMeets.filter(m => mf === 'all' ? true : (mf === 'up' ? m.date >= t : m.date < t));
+  let list = monthFiltered.filter(m => mf === 'all' ? true : (mf === 'up' ? m.date >= t : m.date < t));
   list.sort((a, b) => (mf === 'past' ? -1 : 1) * ((a.date || '') + (a.start || '')).localeCompare((b.date || '') + (b.start || '')));
 
   if (!list.length) {
     $('#m-list').innerHTML = empty(
-      mf === 'up' ? 'ไม่มีรายการในปฏิทินห้องที่กำลังจะถึง' : 'ไม่มีรายการในปฏิทินห้อง',
-      'กดปุ่ม "เพิ่มนัดหมายในปฏิทินห้อง" หรือตั้งค่าซิงค์จาก Google Calendar'
+      'ไม่พบรายการนัดหมายในเดือน/เงื่อนไขที่เลือก',
+      'สามารถเปลี่ยนตัวกรองเดือนด้านบน หรือกดปุ่ม "+ เพิ่มนัดหมายในปฏิทินห้อง" เพื่อสร้างรายการใหม่'
     );
     return;
   }
@@ -943,21 +1023,23 @@ function renderMeetings() {
     const timeLabel = m.start ? esc(m.start) + (m.end && m.end !== m.start ? ' - ' + esc(m.end) : '') + ' น.' : 'ตลอดทั้งวัน';
     h += `<article class="card meet ${m.fromGcal ? 'from-gcal' : ''}" data-id="${esc(m.id)}">
       <div class="mtime">${timeLabel}</div>
-      <div class="mbody">
+      <div class="mbody" data-act="view-meeting" title="คลิกเพื่อดูรายละเอียดการนัดหมาย">
         <div style="margin-bottom:3px">
-          ${m.fromGcal ? `<span class="tag gcal">Google Calendar</span>` : `<span class="tag">ปฏิทินห้องวางแผน</span>`}
+          ${m.fromGcal ? `<span class="tag gcal">${esc(m.calName || 'Google Calendar')}</span>` : `<span class="tag">ปฏิทินห้องวางแผน</span>`}
         </div>
         <h3>${esc(m.title)}</h3>
         <div class="meta">
           ${m.location ? `<span>${I.pin}${esc(m.location)}</span>` : ''}
+          <span>${I.cal}${fmtDate(m.date)}</span>
         </div>
         ${m.note ? `<div class="meta" style="margin-top:6px;color:var(--text);opacity:.85">${esc(m.note)}</div>` : ''}
       </div>
-      ${m.fromGcal && String(m.id).startsWith('GCAL-') ? '' : `
       <div class="mact">
-        <button class="icon-btn sm" data-act="edit-meeting" aria-label="แก้ไข">${I.edit}</button>
-        <button class="icon-btn sm danger" data-act="del-meeting" aria-label="ลบ">${I.trash}</button>
-      </div>`}
+        <button class="btn ghost sm" data-act="view-meeting" title="ดูรายละเอียด">รายละเอียด</button>
+        ${m.fromGcal && String(m.id).startsWith('GCAL-') ? '' : `
+        <button class="icon-btn sm" data-act="edit-meeting" aria-label="แก้ไข" title="แก้ไข">${I.edit}</button>
+        <button class="icon-btn sm danger" data-act="del-meeting" aria-label="ลบ" title="ลบออกจากปฏิทิน">${I.trash}</button>`}
+      </div>
     </article>`;
   }
   $('#m-list').innerHTML = h;
@@ -987,11 +1069,12 @@ function alertCard(a) {
         <span class="tag ${a.kind === 'created' ? 'created' : 'updated'}">
           ${a.kind === 'created' ? 'สร้างไฟล์ใหม่' : 'แก้ไข/อัปเดตไฟล์'}
         </span>
+        <span class="tag" style="color:${kc};border:1px solid ${kc};background:transparent">${kt}</span>
       </div>
       <h3>${esc(a.name)}</h3>
       <div class="meta">
-        <span>${I.clock}${ago(a.at)} (${fmtDate(pb.date)} ${pb.time} น.)</span>
-        ${a.by ? `<span>${I.user}${esc(a.by)}</span>` : ''}
+        <span style="color:var(--yellow);font-weight:600">${I.cal}วันที่ ${fmtDate(pb.date)} เวลา ${pb.time} น. (${ago(a.at)})</span>
+        ${a.by ? `<span>${I.user}โดย: ${esc(a.by)}</span>` : ''}
       </div>
       <div class="arow">
         ${safeFileUrl ? `<a class="btn sm" href="${esc(safeFileUrl)}" target="_blank" rel="noopener noreferrer">${I.ext}เปิดดูไฟล์</a>` : ''}
@@ -1001,13 +1084,30 @@ function alertCard(a) {
   </article>`;
 }
 
+function matchAlertFilters(a) {
+  const [kt] = fileKind(a.mime, a.name);
+  if (af.ftype !== 'all' && kt !== af.ftype) return false;
+
+  const pb = partsBKK(a.at);
+  const t = todayStr();
+  if (af.period === 'today' && pb.date !== t) return false;
+  if (af.period === '7d' && diffDays(pb.date, t) > 7) return false;
+  if (af.period === '30d' && diffDays(pb.date, t) > 30) return false;
+  if (af.period === 'custom' && af.date && pb.date !== af.date) return false;
+
+  const q = af.q.trim().toLowerCase();
+  if (q && !(a.name + ' ' + a.by + ' ' + kt).toLowerCase().includes(q)) return false;
+  return true;
+}
+
 function renderAlerts() {
   const flt = {
     all: () => true,
     created: a => a.kind === 'created',
     updated: a => a.kind !== 'created'
   };
-  const cnt = k => S.alerts.filter(flt[k]).length;
+  const baseMatching = S.alerts.filter(matchAlertFilters);
+  const cnt = k => baseMatching.filter(flt[k]).length;
 
   $('#a-chips').innerHTML = chips(
     { all: 'ความเคลื่อนไหวทั้งหมด', updated: 'อัปเดตไฟล์', created: 'ไฟล์ใหม่' },
@@ -1017,14 +1117,13 @@ function renderAlerts() {
   );
   $('#a-sync').textContent = S.lastSync ? 'ซิงค์ข้อมูลล่าสุด ' + ago(S.lastSync) : '';
 
-  const q = af.q.trim().toLowerCase();
-  const list = S.alerts
-    .filter(a => flt[af.kind](a) && (!q || (a.name + ' ' + a.by).toLowerCase().includes(q)))
+  const list = baseMatching
+    .filter(a => flt[af.kind](a))
     .sort((a, b) => new Date(b.at) - new Date(a.at));
 
   $('#a-list').innerHTML = list.length
     ? list.map(alertCard).join('')
-    : empty('ยังไม่มีประวัติความเคลื่อนไหวไฟล์', 'เมื่อมีการสร้างหรือแก้ไขไฟล์ใน Google Drive ที่เชื่อมต่อกับระบบ รายการจะปรากฏที่นี่โดยอัตโนมัติ');
+    : empty('ไม่พบรายการความเคลื่อนไหวไฟล์ตามตัวกรองที่เลือก', 'ลองเปลี่ยนชนิดของไฟล์ หรือเปลี่ยนช่วงวันเวลาด้านบนเพื่อดูรายการอื่น');
 }
 
 function renderSettings() {
@@ -1193,33 +1292,123 @@ function meetingForm(id) {
   });
 }
 
-function gcalConfigForm() {
-  openModal(`<form id="gcf" autocomplete="off">
+function viewMeetingModal(id) {
+  const allMeets = getAllMeetings();
+  const m = allMeets.find(x => x.id === id);
+  if (!m) return;
+  const timeLabel = m.start ? `${esc(m.start)}${m.end && m.end !== m.start ? ' - ' + esc(m.end) : ''} น.` : 'กิจกรรมตลอดทั้งวัน';
+  const canEdit = !(m.fromGcal && String(m.id).startsWith('GCAL-'));
+
+  openModal(`
     <div class="mh">
-      <h2>ตั้งค่าซิงค์ Google Calendar</h2>
+      <h2>รายละเอียดปฏิทินห้อง</h2>
+      <button type="button" class="icon-btn" data-act="close" aria-label="ปิด">${I.x}</button>
+    </div>
+    <div style="margin-bottom:8px">
+      ${m.fromGcal ? `<span class="tag gcal">${esc(m.calName || 'ซิงค์จาก Google Calendar')}</span>` : `<span class="tag">ปฏิทินห้องวางแผน (Database กลาง)</span>`}
+    </div>
+    <h3 style="font-size:20px;color:var(--yellow);margin-bottom:12px;overflow-wrap:anywhere">${esc(m.title)}</h3>
+    <div class="detail-box">
+      <div class="detail-row"><strong>วันที่:</strong><span>${fmtLong(m.date)}</span></div>
+      <div class="detail-row"><strong>เวลา:</strong><span>${timeLabel}</span></div>
+      <div class="detail-row"><strong>สถานที่:</strong><span>${esc(m.location || 'ไม่ได้ระบุสถานที่')}</span></div>
+      <div class="detail-row"><strong>รายละเอียด:</strong><span style="white-space:pre-wrap;overflow-wrap:anywhere">${esc(m.note || 'ไม่มีรายละเอียดเพิ่มเติม')}</span></div>
+    </div>
+    <div class="mf">
+      ${canEdit ? `
+        <button type="button" class="btn danger sm" id="modalDelMeetBtn">${I.trash}ลบรายการนี้</button>
+        <button type="button" class="btn ghost sm" id="modalEditMeetBtn">${I.edit}แก้ไขข้อมูล</button>
+      ` : ''}
+      <button type="button" class="btn sm" data-act="close">ปิดหน้าต่าง</button>
+    </div>
+  `);
+
+  if (canEdit) {
+    $('#modalEditMeetBtn').onclick = () => {
+      closeModal();
+      meetingForm(m.id);
+    };
+    $('#modalDelMeetBtn').onclick = () => {
+      closeModal();
+      confirmDialog('ยืนยันการลบนัดหมาย', `ต้องการลบ "${m.title}" ออกจากปฏิทินห้องและซิงค์ทุกเครื่องใช่หรือไม่?`, async () => {
+        S.meetings = S.meetings.filter(x => x.id !== m.id);
+        renderAll();
+        toast('กำลังลบนัดหมายและซิงค์ข้อมูล...');
+        const ok = await sendToGAS('delete', 'meeting', m);
+        if (ok) toast('ลบนัดหมายเรียบร้อยแล้ว');
+      });
+    };
+  }
+}
+
+function gcalConfigForm() {
+  const renderCalList = () => {
+    if (!gcalConfig.calendars.length) {
+      return `<div class="empty" style="padding:18px;margin-bottom:14px">ยังไม่มีลิงก์ Google Calendar เพิ่มเติม (ปัจจุบันซิงค์จาก Google Sheets กลางเป็นหลัก)</div>`;
+    }
+    return `<div style="display:grid;gap:8px;margin-bottom:14px">` + gcalConfig.calendars.map(c => `
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;background:#000;border:1px solid var(--line);padding:10px 12px;border-radius:10px">
+        <div style="min-width:0;flex:1">
+          <strong style="display:block;color:var(--yellow);font-size:14.5px">${esc(c.name)}</strong>
+          <small style="color:var(--mute);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(c.url)}</small>
+        </div>
+        <button type="button" class="btn danger sm" data-del-cal="${esc(c.id)}">${I.trash}ลบ</button>
+      </div>
+    `).join('') + `</div>`;
+  };
+
+  openModal(`<div id="gcfWrap">
+    <div class="mh">
+      <h2>จัดการการซิงค์ปฏิทิน (เพิ่ม / ลบ ปฏิทิน)</h2>
       <button type="button" class="icon-btn" data-act="close" aria-label="ปิด">${I.x}</button>
     </div>
     <p style="color:var(--mute);font-size:14px;margin-bottom:12px">
-      ใส่ <strong>Calendar ID</strong> หรือ <strong>ลิงก์สาธารณะในรูปแบบ iCal (.ics)</strong> จากตั้งค่า Google Calendar ของห้องวางแผน เพื่อดึงนัดหมายเข้ามาแสดงแบบอัตโนมัติ (อ่านอย่างเดียว ไม่กระทบปฏิทินต้นฉบับ)
+      คุณสามารถเพิ่มหรือลบปฏิทิน Google Calendar (ผ่าน Calendar ID หรือลิงก์ iCal <code>.ics</code>) เพื่อดึงนัดหมายเข้ามาแสดงร่วมกับปฏิทินห้องวางแผนได้หลายปฏิทินพร้อมกัน
     </p>
-    <label>Google Calendar ID หรือ iCal URL (.ics)
-      <input name="icsUrl" value="${esc(gcalConfig.icsUrl)}" placeholder="เช่น example@group.calendar.google.com หรือ https://.../basic.ics">
-    </label>
-    <div class="mf">
-      <button type="button" class="btn ghost" data-act="close">ยกเลิก</button>
-      <button type="submit" class="btn">บันทึกและซิงค์ปฏิทิน</button>
-    </div>
-  </form>`);
+    <div id="calListContainer">${renderCalList()}</div>
+    <form id="gcf" autocomplete="off" style="border-top:1px solid var(--line);padding-top:12px">
+      <h3 style="font-size:16px;margin-bottom:10px;color:var(--yellow)">+ เพิ่มปฏิทินใหม่</h3>
+      <label>ชื่อเรียกปฏิทิน <span style="color:var(--red)">*</span>
+        <input name="calName" required maxlength="80" placeholder="เช่น ปฏิทินส่วนกลางแขวงฯ, ปฏิทินห้องประชุม">
+      </label>
+      <label>Google Calendar ID หรือ iCal URL (.ics) <span style="color:var(--red)">*</span>
+        <input name="icsUrl" required placeholder="เช่น example@group.calendar.google.com หรือ https://.../basic.ics">
+      </label>
+      <div class="mf">
+        <button type="button" class="btn ghost" data-act="close">ปิด</button>
+        <button type="submit" class="btn">${I.plus}เพิ่มปฏิทินและซิงค์ทันที</button>
+      </div>
+    </form>
+  </div>`);
+
+  const bindDelButtons = () => {
+    $$('[data-del-cal]', $('#modal')).forEach(btn => {
+      btn.onclick = async () => {
+        const cid = btn.getAttribute('data-del-cal');
+        gcalConfig.calendars = gcalConfig.calendars.filter(c => c.id !== cid);
+        try { localStorage.setItem(GCAL_CFG_KEY, JSON.stringify(gcalConfig)); } catch (err) {}
+        $('#calListContainer').innerHTML = renderCalList();
+        bindDelButtons();
+        toast('ลบปฏิทินและกำลังอัปเดตข้อมูล...');
+        await syncGASData(true);
+      };
+    });
+  };
+  bindDelButtons();
 
   $('#gcf').addEventListener('submit', async e => {
     e.preventDefault();
     const f = new FormData(e.target);
-    gcalConfig.icsUrl = (f.get('icsUrl') || '').trim();
+    const name = (f.get('calName') || '').trim();
+    const url = (f.get('icsUrl') || '').trim();
+    if (!name || !url) return;
+    gcalConfig.calendars.push({ id: uid(), name, url });
     try { localStorage.setItem(GCAL_CFG_KEY, JSON.stringify(gcalConfig)); } catch (err) {}
-    closeModal();
-    toast('กำลังซิงค์ข้อมูลจาก Google Calendar...');
+    e.target.reset();
+    $('#calListContainer').innerHTML = renderCalList();
+    bindDelButtons();
+    toast('เพิ่มปฏิทินใหม่และกำลังซิงค์ข้อมูล...');
     await syncGASData(false);
-    toast('อัปเดตการตั้งค่าปฏิทินห้องเรียบร้อย');
   });
 }
 
@@ -1272,6 +1461,9 @@ document.addEventListener('click', async e => {
     case 'add-meeting':
       meetingForm();
       break;
+    case 'view-meeting':
+      viewMeetingModal(id);
+      break;
     case 'edit-meeting':
       meetingForm(id);
       break;
@@ -1317,7 +1509,28 @@ document.addEventListener('click', async e => {
 });
 
 $('#t-search').addEventListener('input', e => { tf.q = e.target.value; renderTasks(); });
+$('#m-month').addEventListener('change', e => { mMonth = e.target.value; renderMeetings(); });
 $('#a-search').addEventListener('input', e => { af.q = e.target.value; renderAlerts(); });
+$('#a-type').addEventListener('change', e => { af.ftype = e.target.value; renderAlerts(); });
+$('#a-period').addEventListener('change', e => {
+  af.period = e.target.value;
+  const dateInput = $('#a-date');
+  if (af.period === 'custom') {
+    dateInput.hidden = false;
+    if (!dateInput.value) {
+      dateInput.value = todayStr();
+      af.date = dateInput.value;
+    }
+  } else {
+    dateInput.hidden = true;
+    af.date = '';
+  }
+  renderAlerts();
+});
+$('#a-date').addEventListener('change', e => {
+  af.date = e.target.value;
+  renderAlerts();
+});
 $('#nav').addEventListener('click', e => {
   const b = e.target.closest('[data-view]');
   if (b) show(b.dataset.view);
