@@ -154,6 +154,20 @@ label.chk input{margin:0}
 .detail-row{display:flex;gap:10px;margin-bottom:8px;align-items:flex-start}
 .detail-row:last-child{margin-bottom:0}
 .detail-row strong{color:var(--mute);min-width:95px;flex:none;font-weight:600}
+.link-box{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.link-pill{display:inline-flex;align-items:center;gap:6px;background:rgba(106,168,255,.15);border:1px solid var(--blue);color:#9ec5ff;padding:6px 12px;border-radius:8px;font-weight:600;font-size:13.5px;text-decoration:none;transition:all .15s}
+.link-pill:hover{background:var(--blue);color:#000}
+.cal-strip{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 12px;margin-bottom:10px;scrollbar-width:thin}
+.cal-day{flex:none;min-width:68px;background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:8px 10px;text-align:center;cursor:pointer;transition:all .15s}
+.cal-day:hover{border-color:var(--yellow);transform:translateY(-2px)}
+.cal-day.active{background:var(--yellow);color:#000;border-color:var(--yellow);font-weight:700}
+.cal-day.has-ev{border-bottom:4px solid var(--yellow)}
+.cal-day small{display:block;font-size:11.5px;opacity:.8}
+.cal-day strong{display:block;font:700 18px var(--head);line-height:1.2}
+.cal-day em{display:inline-block;font-style:normal;font-size:11px;padding:1px 6px;border-radius:99px;background:#2a2a2a;color:var(--yellow);margin-top:3px}
+.cal-day.active em{background:#000;color:var(--yellow)}
+.dayhead{cursor:pointer;padding:6px 10px;border-radius:8px;background:rgba(255,196,0,.07);border-left:4px solid var(--yellow);transition:background .15s}
+.dayhead:hover{background:rgba(255,196,0,.16)}
 
 /* Read-only File Movement Feed */
 .alert{display:flex;gap:14px;align-items:flex-start;margin-bottom:0;border-left:5px solid var(--c,#a3a3a3);border-radius:4px 12px 12px 4px}
@@ -246,11 +260,17 @@ label.chk input{margin:0}
     </div>
     <div class="centerline"></div>
     <div class="info-banner" id="gcalBanner">
-      <span>คลิกที่รายการเพื่อดูรายละเอียด • ซิงค์ตารางนัดหมายทั้งขาไป-กลับจากฐานข้อมูลกลางและ Google Calendar อัตโนมัติ</span>
+      <span>คลิกที่แถบวันที่หรือรายการเพื่อนัดหมายเพื่อดูรายละเอียดและลิงก์การประชุม • ซิงค์ข้อมูลแบบ Real-time อัตโนมัติ</span>
       <small id="m-sync" style="color:#9ec5ff;font-weight:600"></small>
     </div>
+    <div id="m-daystrip" class="cal-strip" aria-label="แถบเลือกดูงานรายวัน"></div>
     <div class="filter-bar">
       <div class="chips" id="m-chips" style="flex:1"></div>
+      <div class="filter-group">
+        <span>ดูเฉพาะวันที่:</span>
+        <input type="date" id="m-date-pick" aria-label="เลือกวันที่เพื่อดูรายละเอียดงานในวันนั้น">
+        <button class="btn ghost sm" type="button" id="m-date-clear" hidden>ล้างวันที่</button>
+      </div>
       <div class="filter-group">
         <span>เลือกเดือน:</span>
         <select id="m-month" aria-label="เลือกเดือนเพื่อดูปฏิทิน">
@@ -424,8 +444,38 @@ const I = {
   folder: P('<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>'),
   edit: P('<path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z"/>'),
   x: P('<path d="M6 6l12 12M18 6L6 18"/>'),
-  ext: P('<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>')
+  ext: P('<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>'),
+  video: P('<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>')
 };
+
+function extractUrls(text) {
+  if (!text) return [];
+  const matches = String(text).match(/https?:\/\/[^\s"'<>]+/gi) || [];
+  return [...new Set(matches)];
+}
+
+function renderLinkButtons(urls) {
+  if (!urls || !urls.length) return '';
+  return `<div class="link-box">` + urls.map(u => {
+    const low = u.toLowerCase();
+    let label = 'เปิดลิงก์ที่แนบมา';
+    let icon = I.ext;
+    if (low.includes('meet.google.com') || low.includes('zoom.us') || low.includes('teams.microsoft') || low.includes('webex')) {
+      label = 'เข้าร่วมประชุมออนไลน์';
+      icon = I.video;
+    } else if (low.includes('drive.google.com') || low.includes('docs.google.com')) {
+      label = 'เปิดเอกสารการประชุม';
+      icon = I.folder;
+    }
+    return `<a class="link-pill" href="${esc(u)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">${icon}<span>${label}</span></a>`;
+  }).join('') + `</div>`;
+}
+
+function linkifyText(text) {
+  if (!text) return '';
+  const escaped = esc(text);
+  return escaped.replace(/(https?:\/\/[^\s&]+)/gi, '<a href="$1" target="_blank" rel="noopener noreferrer" style="color:var(--blue);text-decoration:underline;font-weight:600">$1</a>');
+}
 
 const STAT = { todo: 'รอดำเนินการ', doing: 'กำลังดำเนินการ', done: 'เสร็จสิ้น' };
 const PRIO = { low: 'ปกติ', mid: 'สำคัญ', high: 'ด่วน' };
@@ -434,8 +484,9 @@ const chips = (m, cur, cnt, act) => Object.entries(m).map(([k, l]) => `<button c
 const empty = (t, s) => `<div class="empty" style="grid-column:1/-1"><b>${t}</b>${s || ''}</div>`;
 
 // -----------------------------------------------------
-// STATE & CENTRALIZED CACHE
+// STATE, PENDING WRITE GUARD & REAL-TIME BROADCAST
 // -----------------------------------------------------
+const PENDING_KEY = 'hwn2.planning.pending_ops';
 let S = {
   tasks: [],
   meetings: [],
@@ -449,8 +500,48 @@ try {
   if (ls && Array.isArray(ls.tasks)) S = { ...S, ...ls };
 } catch (e) {}
 
-const saveCache = () => {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(S)); } catch (e) {}
+// Pending operation guard prevents newly created/updated items from vanishing while Google Sheets is still saving
+let pendingOps = {};
+try {
+  pendingOps = JSON.parse(localStorage.getItem(PENDING_KEY) || '{}') || {};
+} catch (e) { pendingOps = {}; }
+
+function savePendingOps() {
+  try { localStorage.setItem(PENDING_KEY, JSON.stringify(pendingOps)); } catch (e) {}
+}
+
+function recordPendingOp(action, itemType, itemData) {
+  if (!itemData || !itemData.id) return;
+  pendingOps[itemData.id] = {
+    action,
+    itemType,
+    data: itemData,
+    ts: Date.now()
+  };
+  savePendingOps();
+}
+
+const bc = ('BroadcastChannel' in window) ? new BroadcastChannel('hwn2_realtime_sync') : null;
+if (bc) {
+  bc.onmessage = ev => {
+    if (ev.data && ev.data.type === 'STATE_UPDATED') {
+      try {
+        const ls = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        if (ls) {
+          S = { ...S, ...ls };
+          renderAll();
+        }
+      } catch (e) {}
+      syncGASData(true);
+    }
+  };
+}
+
+const saveCache = (broadcast = false) => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(S));
+    if (broadcast && bc) bc.postMessage({ type: 'STATE_UPDATED', ts: Date.now() });
+  } catch (e) {}
 };
 
 let gcalConfig = { calendars: [] };
@@ -662,16 +753,18 @@ async function syncGASData(silent = false) {
       }
 
       const statusStr = String(item.status || '').toLowerCase().trim();
+      const isMeetRecord = idStr.startsWith('MEET-') || idStr.startsWith('CAL-') || statusStr === 'meeting' || statusStr === 'calendar' || extra._type === 'meeting';
 
       // 1. ปฏิทินห้อง (Meetings / Calendar Events)
-      if (idStr.startsWith('MEET-') || idStr.startsWith('CAL-') || statusStr === 'meeting' || statusStr === 'calendar') {
+      if (isMeetRecord) {
         const mObj = {
           id: idStr,
           title: item.title || extra.title || '(ไม่มีชื่อรายการนัดหมาย)',
-          date: normalizeDateStr(item.dueDate || extra.date || todayStr()),
+          date: normalizeDateStr(extra.date || item.dueDate || todayStr()),
           start: extra.start != null ? extra.start : '09:00',
           end: extra.end != null ? extra.end : '10:00',
-          location: item.assignee || extra.location || '',
+          location: extra.location || item.assignee || '',
+          link: extra.link || '',
           note: extra.note != null ? extra.note : (typeof item.detail === 'string' && !item.detail.trim().startsWith('{') ? item.detail : ''),
           gcalId: item.gcalId || extra.gcalId || null,
           fromGcal: Boolean(item.gcalId || extra.fromGcal || idStr.startsWith('CAL-'))
@@ -721,6 +814,49 @@ async function syncGASData(silent = false) {
         });
       }
     });
+
+    // Reconcile with pending local operations (protects newly added/edited items for up to 45 seconds if GAS is slow to index)
+    const nowMs = Date.now();
+    let pendingChanged = false;
+    for (const [pid, op] of Object.entries(pendingOps)) {
+      if (nowMs - op.ts > 45000) {
+        delete pendingOps[pid];
+        pendingChanged = true;
+        continue;
+      }
+      if (op.itemType === 'meeting') {
+        const idx = fetchedMeetings.findIndex(m => m.id === pid);
+        if (op.action === 'delete') {
+          if (idx > -1) fetchedMeetings.splice(idx, 1);
+          else { delete pendingOps[pid]; pendingChanged = true; }
+        } else {
+          if (idx > -1) {
+            // Server now has the item; merge our latest fields and clear pending lock
+            fetchedMeetings[idx] = { ...fetchedMeetings[idx], ...op.data };
+            delete pendingOps[pid];
+            pendingChanged = true;
+          } else {
+            // Server hasn't returned the newly added meeting yet; keep it visible!
+            fetchedMeetings.push(op.data);
+          }
+        }
+      } else if (op.itemType === 'task') {
+        const idx = fetchedTasks.findIndex(t => t.id === pid);
+        if (op.action === 'delete') {
+          if (idx > -1) fetchedTasks.splice(idx, 1);
+          else { delete pendingOps[pid]; pendingChanged = true; }
+        } else {
+          if (idx > -1) {
+            fetchedTasks[idx] = { ...fetchedTasks[idx], ...op.data };
+            delete pendingOps[pid];
+            pendingChanged = true;
+          } else {
+            fetchedTasks.unshift(op.data);
+          }
+        }
+      }
+    }
+    if (pendingChanged) savePendingOps();
 
     // If GAS also returned a dedicated calendar array, merge it in seamlessly
     calendarRows.forEach(ev => {
@@ -779,10 +915,17 @@ async function sendToGAS(action, itemType, itemData) {
       // Find existing record to preserve any fields not explicitly passed
       const existing = S.meetings.find(x => x.id === itemData.id) || {};
       const merged = { ...existing, ...itemData };
+      recordPendingOp(action, 'meeting', merged);
+
       payloadData = {
         id: merged.id,
         title: merged.title || '(ไม่มีชื่อรายการ)',
         detail: JSON.stringify({
+          _type: 'meeting',
+          title: merged.title || '',
+          date: normalizeDateStr(merged.date || todayStr()),
+          location: merged.location || '',
+          link: merged.link || '',
           note: merged.note || '',
           start: merged.start != null ? merged.start : '',
           end: merged.end != null ? merged.end : ''
@@ -798,6 +941,8 @@ async function sendToGAS(action, itemType, itemData) {
       // CRITICAL FIX: Always merge with existing task in state so partial updates (like cycling status) NEVER wipe out title/owner/dueDate
       const existing = S.tasks.find(x => x.id === itemData.id) || {};
       const merged = { ...existing, ...itemData };
+      recordPendingOp(action, 'task', merged);
+
       payloadData = {
         id: merged.id,
         title: merged.title || '(ไม่มีหัวข้องาน)',
@@ -812,6 +957,8 @@ async function sendToGAS(action, itemType, itemData) {
     } else {
       throw new Error('ไม่อนุญาตให้แก้ไขข้อมูลไฟล์ต้นฉบับ (Read-Only)');
     }
+
+    saveCache(true);
 
     const res = await fetch(API_URL, {
       method: 'POST',
@@ -829,8 +976,9 @@ async function sendToGAS(action, itemType, itemData) {
 
     if (json.status !== 'success') throw new Error(json.message || 'บันทึกไม่สำเร็จ');
 
-    // Auto-refresh immediately on outbound & inbound change
-    await syncGASData(true);
+    // Give Google Sheets 700ms to flush the new row before pulling fresh state
+    setTimeout(() => syncGASData(true), 700);
+    setSyncStatus('ok', 'บันทึกและซิงค์สำเร็จเมื่อสักครู่');
     return true;
   } catch (err) {
     console.error('Send to GAS failed:', err);
@@ -844,8 +992,9 @@ async function sendToGAS(action, itemType, itemData) {
 // UI RENDERING
 // -----------------------------------------------------
 let tf = { q: '', st: 'all' };
-let mf = 'up';
+let mf = 'all';
 let mMonth = 'all';
+let mDateFilter = '';
 let af = { q: '', kind: 'all', ftype: 'all', period: 'all', date: '' };
 const views = ['tasks', 'meetings', 'alerts', 'settings'];
 
@@ -989,16 +1138,41 @@ function renderMeetings() {
   const allMeets = getAllMeetings();
   updateMonthDropdown(allMeets);
 
-  const monthFiltered = mMonth === 'all'
-    ? allMeets
-    : allMeets.filter(m => (m.date || '').slice(0, 7) === mMonth);
+  // Render quick 14-day interactive strip (-2 days to +11 days) so users can click any day to inspect its schedule
+  const stripEl = $('#m-daystrip');
+  if (stripEl) {
+    let stripHtml = '';
+    for (let i = -2; i <= 11; i++) {
+      const dStr = addDays(t, i);
+      const dt = new Date(dStr + 'T00:00:00+07:00');
+      const dayName = i === 0 ? 'วันนี้' : i === 1 ? 'พรุ่งนี้' : dt.toLocaleDateString('th-TH', { weekday: 'short', timeZone: TZ });
+      const dayNum = dt.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', timeZone: TZ });
+      const evCount = allMeets.filter(m => m.date === dStr).length + S.tasks.filter(tk => tk.due === dStr && tk.status !== 'done').length;
+      const isAct = mDateFilter === dStr;
+      stripHtml += `<button type="button" class="cal-day${isAct ? ' active' : ''}${evCount ? ' has-ev' : ''}" data-act="pick-day" data-date="${dStr}" title="คลิกเพื่อดูรายละเอียดงานและการประชุมในวันที่ ${fmtDate(dStr)}">
+        <small>${esc(dayName)}</small>
+        <strong>${esc(dayNum)}</strong>
+        <em>${evCount ? evCount + ' รายการ' : 'ว่าง'}</em>
+      </button>`;
+    }
+    stripEl.innerHTML = stripHtml;
+  }
+
+  const clearBtn = $('#m-date-clear');
+  if (clearBtn) clearBtn.hidden = !mDateFilter;
+
+  const monthFiltered = allMeets.filter(m => {
+    if (mDateFilter) return m.date === mDateFilter;
+    if (mMonth !== 'all') return (m.date || '').slice(0, 7) === mMonth;
+    return true;
+  });
 
   const cnt = k => {
     if (k === 'up') return monthFiltered.filter(m => m.date >= t).length;
     if (k === 'past') return monthFiltered.filter(m => m.date < t).length;
     return monthFiltered.length;
   };
-  $('#m-chips').innerHTML = chips({ up: 'กำลังจะถึง', past: 'ที่ผ่านมาแล้ว', all: 'ทั้งหมด' }, mf, cnt, 'f-meet');
+  $('#m-chips').innerHTML = chips({ all: 'ทั้งหมด', up: 'กำลังจะถึง', past: 'ที่ผ่านมาแล้ว' }, mf, cnt, 'f-meet');
   $('#m-sync').textContent = S.lastSync ? 'ซิงค์ปฏิทินล่าสุด ' + ago(S.lastSync) : '';
 
   let list = monthFiltered.filter(m => mf === 'all' ? true : (mf === 'up' ? m.date >= t : m.date < t));
@@ -1006,8 +1180,8 @@ function renderMeetings() {
 
   if (!list.length) {
     $('#m-list').innerHTML = empty(
-      'ไม่พบรายการนัดหมายในเดือน/เงื่อนไขที่เลือก',
-      'สามารถเปลี่ยนตัวกรองเดือนด้านบน หรือกดปุ่ม "+ เพิ่มนัดหมายในปฏิทินห้อง" เพื่อสร้างรายการใหม่'
+      mDateFilter ? `ไม่มีตารางนัดหมายในวันที่ ${fmtLong(mDateFilter)}` : 'ไม่พบรายการนัดหมายในเดือน/เงื่อนไขที่เลือก',
+      'สามารถคลิกปุ่ม "+ เพิ่มนัดหมายในปฏิทินห้อง" เพื่อลงเวลาและแนบลิงก์ประชุมออนไลน์ได้ทันที'
     );
     return;
   }
@@ -1018,12 +1192,18 @@ function renderMeetings() {
       cur = m.date;
       const d = diffDays(t, m.date);
       const rel = d === 0 ? 'วันนี้' : d === 1 ? 'พรุ่งนี้' : d === -1 ? 'เมื่อวาน' : (d > 1 ? `อีก ${d} วัน` : '');
-      h += `<div class="dayhead">${fmtLong(m.date)}${rel ? `<small>${rel}</small>` : ''}</div>`;
+      const dayTasksCount = S.tasks.filter(tk => tk.due === m.date).length;
+      h += `<div class="dayhead" data-act="open-day-detail" data-date="${esc(m.date)}" title="คลิกเพื่อดูสรุปงานและลิงก์การประชุมทั้งหมดในวันนี้">
+        <span>📅 ${fmtLong(m.date)}</span>
+        ${rel ? `<small>${rel}</small>` : ''}
+        <span style="margin-left:auto;font-size:13px;color:var(--text);font-weight:500">🔍 ดูงานทั้งหมดของวันนี้ ${dayTasksCount ? `(มีงานครบกำหนด ${dayTasksCount})` : ''} &raquo;</span>
+      </div>`;
     }
     const timeLabel = m.start ? esc(m.start) + (m.end && m.end !== m.start ? ' - ' + esc(m.end) : '') + ' น.' : 'ตลอดทั้งวัน';
+    const urls = extractUrls((m.link || '') + ' ' + (m.note || '') + ' ' + (m.location || ''));
     h += `<article class="card meet ${m.fromGcal ? 'from-gcal' : ''}" data-id="${esc(m.id)}">
       <div class="mtime">${timeLabel}</div>
-      <div class="mbody" data-act="view-meeting" title="คลิกเพื่อดูรายละเอียดการนัดหมาย">
+      <div class="mbody" data-act="view-meeting" title="คลิกเพื่อดูรายละเอียดและลิงก์การประชุม">
         <div style="margin-bottom:3px">
           ${m.fromGcal ? `<span class="tag gcal">${esc(m.calName || 'Google Calendar')}</span>` : `<span class="tag">ปฏิทินห้องวางแผน</span>`}
         </div>
@@ -1033,9 +1213,10 @@ function renderMeetings() {
           <span>${I.cal}${fmtDate(m.date)}</span>
         </div>
         ${m.note ? `<div class="meta" style="margin-top:6px;color:var(--text);opacity:.85">${esc(m.note)}</div>` : ''}
+        ${renderLinkButtons(urls)}
       </div>
       <div class="mact">
-        <button class="btn ghost sm" data-act="view-meeting" title="ดูรายละเอียด">รายละเอียด</button>
+        <button class="btn ghost sm" data-act="view-meeting" title="ดูรายละเอียดและลิงก์ประชุม">รายละเอียด</button>
         ${m.fromGcal && String(m.id).startsWith('GCAL-') ? '' : `
         <button class="icon-btn sm" data-act="edit-meeting" aria-label="แก้ไข" title="แก้ไข">${I.edit}</button>
         <button class="icon-btn sm danger" data-act="del-meeting" aria-label="ลบ" title="ลบออกจากปฏิทิน">${I.trash}</button>`}
@@ -1123,14 +1304,23 @@ function renderAlerts() {
 
   $('#a-list').innerHTML = list.length
     ? list.map(alertCard).join('')
-    : empty('ไม่พบรายการความเคลื่อนไหวไฟล์ตามตัวกรองที่เลือก', 'ลองเปลี่ยนชนิดของไฟล์ หรือเปลี่ยนช่วงวันเวลาด้านบนเพื่อดูรายการอื่น');
+    : empty(
+        S.alerts.length ? 'ไม่พบความเคลื่อนไหวไฟล์ตามตัวกรองที่เลือก' : 'ยังไม่มีประวัติความเคลื่อนไหวไฟล์',
+        'เมื่อมีการสร้างหรือแก้ไขไฟล์ใน Google Drive ข้อมูลความเคลื่อนไหวจะแสดงที่นี่โดยอัตโนมัติ'
+      );
 }
 
 function renderSettings() {
   const perm = 'Notification' in window ? Notification.permission : 'denied';
   const btn = $('#notifPermBtn');
   if (btn) {
-    btn.innerHTML = I.bell + (perm === 'granted' ? 'อนุญาตการแจ้งเตือนเรียบร้อยแล้ว' : perm === 'denied' ? 'เบราว์เซอร์ปิดกั้นการแจ้งเตือน' : 'เปิดรับการแจ้งเตือนบนเบราว์เซอร์');
+    btn.innerHTML = I.bell + (
+      perm === 'granted'
+        ? 'เปิดการแจ้งเตือนบนเบราว์เซอร์แล้ว'
+        : perm === 'denied'
+          ? 'เบราว์เซอร์บล็อกการแจ้งเตือนไว้'
+          : 'คลิกเพื่อเปิดรับการแจ้งเตือนบนหน้าจอ'
+    );
     btn.disabled = (perm === 'granted');
   }
 }
@@ -1145,15 +1335,14 @@ function renderAll() {
 }
 
 // -----------------------------------------------------
-// FORMS & DIALOGS
+// FORMS & MODALS
 // -----------------------------------------------------
 function taskForm(id) {
   const old = id ? S.tasks.find(x => x.id === id) : null;
-  const t = old || { title: '', owner: '', due: todayStr(), priority: 'mid', status: 'todo', note: '' };
-
+  const t = old || { title: '', owner: '', due: '', priority: 'mid', status: 'todo', note: '', syncCal: false };
   openModal(`<form id="tf" autocomplete="off">
     <div class="mh">
-      <h2>${old ? 'แก้ไขงาน' : 'เพิ่มงานใหม่'}</h2>
+      <h2>${old ? 'แก้ไขรายละเอียดงาน' : 'เพิ่มงานใหม่'}</h2>
       <button type="button" class="icon-btn" data-act="close" aria-label="ปิด">${I.x}</button>
     </div>
     <label>ชื่องาน <span style="color:var(--red)">*</span>
@@ -1168,19 +1357,19 @@ function taskForm(id) {
       </label>
     </div>
     <div class="two">
-      <label>ความสำคัญ
+      <label>ระดับความสำคัญ
         <select name="priority">${opt(PRIO, t.priority)}</select>
       </label>
-      <label>สถานะ
+      <label>สถานะงาน
         <select name="status">${opt(STAT, t.status)}</select>
       </label>
     </div>
     <label>รายละเอียดเพิ่มเติม
-      <textarea name="note" rows="3" maxlength="2000" placeholder="บันทึกรายละเอียดหรือหมายเหตุ...">${esc(t.note)}</textarea>
+      <textarea name="note" rows="3" maxlength="2000" placeholder="ระบุหมายเหตุหรือรายละเอียดของงาน">${esc(t.note)}</textarea>
     </label>
     <div class="mf">
       <button type="button" class="btn ghost" data-act="close">ยกเลิก</button>
-      <button type="submit" class="btn">บันทึกและซิงค์ทุกเครื่อง</button>
+      <button type="submit" class="btn">บันทึกและซิงค์ข้อมูล</button>
     </div>
   </form>`);
 
@@ -1191,15 +1380,15 @@ function taskForm(id) {
       id: old ? old.id : 'TASK-' + uid(),
       title: f.get('title').trim(),
       owner: f.get('owner').trim(),
-      due: f.get('due') || '',
+      due: normalizeDateStr(f.get('due') || ''),
       priority: f.get('priority'),
       status: f.get('status'),
-      note: f.get('note').trim()
+      note: f.get('note').trim(),
+      syncCal: false
     };
     if (!d.title) return;
     closeModal();
 
-    // Optimistic UI update so user sees change immediately
     if (old) {
       const idx = S.tasks.findIndex(x => x.id === old.id);
       if (idx > -1) S.tasks[idx] = { ...S.tasks[idx], ...d };
@@ -1208,15 +1397,15 @@ function taskForm(id) {
     }
     renderAll();
 
-    toast('กำลังบันทึกและซิงค์ข้อมูล...');
+    toast('กำลังบันทึกข้อมูลและซิงค์ทุกเครื่อง...');
     const ok = await sendToGAS(old ? 'update' : 'add', 'task', d);
-    if (ok) toast(old ? 'อัปเดตงานเรียบร้อยแล้ว' : 'เพิ่มงานใหม่เรียบร้อยแล้ว');
+    if (ok) toast(old ? 'บันทึกการแก้ไขงานสำเร็จ' : 'เพิ่มงานใหม่สำเร็จ');
   });
 }
 
-function meetingForm(id) {
+function meetingForm(id, defaultDate) {
   const old = id ? S.meetings.find(x => x.id === id) : null;
-  const m = old || { title: '', date: todayStr(), start: '09:00', end: '10:30', location: 'ห้องวางแผน', note: '' };
+  const m = old || { title: '', date: defaultDate || mDateFilter || todayStr(), start: '09:00', end: '10:30', location: 'ห้องวางแผน', link: '', note: '' };
   const allDay = Boolean(old && !old.start);
 
   openModal(`<form id="mf" autocomplete="off">
@@ -1245,8 +1434,11 @@ function meetingForm(id) {
     <label>สถานที่ / ห้องประชุม
       <input name="location" maxlength="200" value="${esc(m.location)}" placeholder="เช่น ห้องวางแผน แขวงทางหลวงนครสวรรค์ที่ 2">
     </label>
-    <label>รายละเอียดเพิ่มเติม
-      <textarea name="note" rows="3" maxlength="2000">${esc(m.note)}</textarea>
+    <label>ลิงก์การประชุมออนไลน์ / ลิงก์เอกสาร (Google Meet, Zoom, Drive)
+      <input type="url" name="link" maxlength="500" value="${esc(m.link || '')}" placeholder="https://meet.google.com/... หรือ https://zoom.us/...">
+    </label>
+    <label>รายละเอียดเพิ่มเติม / วาระการประชุม
+      <textarea name="note" rows="3" maxlength="2000" placeholder="บันทึกรายละเอียด หรือวางลิงก์เพิ่มเติมได้ที่นี่...">${esc(m.note)}</textarea>
     </label>
     <div class="mf">
       <button type="button" class="btn ghost" data-act="close">ยกเลิก</button>
@@ -1265,10 +1457,11 @@ function meetingForm(id) {
     const d = {
       id: old ? old.id : 'MEET-' + uid(),
       title: f.get('title').trim(),
-      date: f.get('date'),
+      date: normalizeDateStr(f.get('date')),
       start: all ? '' : f.get('start'),
       end: all ? '' : f.get('end'),
       location: f.get('location').trim(),
+      link: (f.get('link') || '').trim(),
       note: f.get('note').trim()
     };
     if (!d.title || !d.date) return;
@@ -1277,6 +1470,12 @@ function meetingForm(id) {
       return;
     }
     closeModal();
+
+    // Ensure the filter automatically shows the newly added date so it never looks like it disappeared
+    if (mMonth !== 'all' && d.date.slice(0, 7) !== mMonth) mMonth = 'all';
+    if (mDateFilter && mDateFilter !== d.date) mDateFilter = d.date;
+    if (mf === 'up' && d.date < todayStr()) mf = 'all';
+    if (mf === 'past' && d.date >= todayStr()) mf = 'all';
 
     if (old) {
       const idx = S.meetings.findIndex(x => x.id === old.id);
@@ -1298,21 +1497,25 @@ function viewMeetingModal(id) {
   if (!m) return;
   const timeLabel = m.start ? `${esc(m.start)}${m.end && m.end !== m.start ? ' - ' + esc(m.end) : ''} น.` : 'กิจกรรมตลอดทั้งวัน';
   const canEdit = !(m.fromGcal && String(m.id).startsWith('GCAL-'));
+  const urls = extractUrls((m.link || '') + ' ' + (m.note || '') + ' ' + (m.location || ''));
 
   openModal(`
     <div class="mh">
-      <h2>รายละเอียดปฏิทินห้อง</h2>
+      <h2>รายละเอียดการประชุม / นัดหมาย</h2>
       <button type="button" class="icon-btn" data-act="close" aria-label="ปิด">${I.x}</button>
     </div>
-    <div style="margin-bottom:8px">
+    <div style="margin-bottom:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
       ${m.fromGcal ? `<span class="tag gcal">${esc(m.calName || 'ซิงค์จาก Google Calendar')}</span>` : `<span class="tag">ปฏิทินห้องวางแผน (Database กลาง)</span>`}
+      <button type="button" class="btn ghost sm" id="viewAllDayBtn" style="padding:3px 10px;font-size:12.5px">📅 ดูงานทั้งหมดในวันที่ ${fmtDate(m.date)}</button>
     </div>
     <h3 style="font-size:20px;color:var(--yellow);margin-bottom:12px;overflow-wrap:anywhere">${esc(m.title)}</h3>
+    ${urls.length ? `<div style="margin-bottom:12px">${renderLinkButtons(urls)}</div>` : ''}
     <div class="detail-box">
       <div class="detail-row"><strong>วันที่:</strong><span>${fmtLong(m.date)}</span></div>
       <div class="detail-row"><strong>เวลา:</strong><span>${timeLabel}</span></div>
-      <div class="detail-row"><strong>สถานที่:</strong><span>${esc(m.location || 'ไม่ได้ระบุสถานที่')}</span></div>
-      <div class="detail-row"><strong>รายละเอียด:</strong><span style="white-space:pre-wrap;overflow-wrap:anywhere">${esc(m.note || 'ไม่มีรายละเอียดเพิ่มเติม')}</span></div>
+      <div class="detail-row"><strong>สถานที่:</strong><span>${linkifyText(m.location || 'ไม่ได้ระบุสถานที่')}</span></div>
+      ${m.link ? `<div class="detail-row"><strong>ลิงก์ประชุม:</strong><span style="overflow-wrap:anywhere">${linkifyText(m.link)}</span></div>` : ''}
+      <div class="detail-row"><strong>รายละเอียด:</strong><span style="white-space:pre-wrap;overflow-wrap:anywhere">${linkifyText(m.note || 'ไม่มีรายละเอียดเพิ่มเติม')}</span></div>
     </div>
     <div class="mf">
       ${canEdit ? `
@@ -1323,6 +1526,14 @@ function viewMeetingModal(id) {
     </div>
   `);
 
+  const dayBtn = $('#viewAllDayBtn');
+  if (dayBtn) {
+    dayBtn.onclick = () => {
+      closeModal();
+      openDayOverviewModal(m.date);
+    };
+  }
+
   if (canEdit) {
     $('#modalEditMeetBtn').onclick = () => {
       closeModal();
@@ -1331,6 +1542,7 @@ function viewMeetingModal(id) {
     $('#modalDelMeetBtn').onclick = () => {
       closeModal();
       confirmDialog('ยืนยันการลบนัดหมาย', `ต้องการลบ "${m.title}" ออกจากปฏิทินห้องและซิงค์ทุกเครื่องใช่หรือไม่?`, async () => {
+        recordPendingOp('delete', 'meeting', m);
         S.meetings = S.meetings.filter(x => x.id !== m.id);
         renderAll();
         toast('กำลังลบนัดหมายและซิงค์ข้อมูล...');
@@ -1339,6 +1551,78 @@ function viewMeetingModal(id) {
       });
     };
   }
+}
+
+function openDayOverviewModal(dateStr) {
+  const cleanDate = normalizeDateStr(dateStr) || todayStr();
+  const dayMeets = getAllMeetings()
+    .filter(m => m.date === cleanDate)
+    .sort((a, b) => (a.start || '').localeCompare(b.start || ''));
+  const dayTasks = S.tasks.filter(t => t.due === cleanDate);
+
+  const meetHtml = dayMeets.length ? dayMeets.map(m => {
+    const timeLabel = m.start ? `${esc(m.start)}${m.end && m.end !== m.start ? ' - ' + esc(m.end) : ''} น.` : 'ตลอดทั้งวัน';
+    const urls = extractUrls((m.link || '') + ' ' + (m.note || '') + ' ' + (m.location || ''));
+    return `<div class="detail-box" style="margin:8px 0;border-left:4px solid var(--yellow)">
+      <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start">
+        <div>
+          <strong style="color:var(--yellow);font-size:14px">${timeLabel}</strong>
+          <h4 style="font-size:16.5px;font-weight:700;margin:2px 0 4px">${esc(m.title)}</h4>
+        </div>
+        <button type="button" class="btn ghost sm" data-open-meet="${esc(m.id)}" style="padding:4px 10px;font-size:12.5px">เปิดดู/แก้ไข</button>
+      </div>
+      ${m.location ? `<div style="font-size:13.5px;color:var(--mute)">📍 สถานที่: ${linkifyText(m.location)}</div>` : ''}
+      ${m.note ? `<div style="font-size:14px;margin-top:6px;white-space:pre-wrap;overflow-wrap:anywhere">${linkifyText(m.note)}</div>` : ''}
+      ${renderLinkButtons(urls)}
+    </div>`;
+  }).join('') : `<div class="empty" style="padding:16px;margin:8px 0">ไม่มีตารางนัดหมายในวันนี้</div>`;
+
+  const taskHtml = dayTasks.length ? dayTasks.map(t => `
+    <div class="detail-box" style="margin:8px 0;border-left:4px solid ${t.status === 'done' ? 'var(--green)' : 'var(--blue)'};display:flex;justify-content:space-between;align-items:center;gap:10px">
+      <div>
+        <span class="tag p-${t.priority}">${PRIO[t.priority]}</span>
+        <span class="tag">${STAT[t.status]}</span>
+        <h4 style="font-size:15.5px;font-weight:600;margin-top:4px">${esc(t.title)}</h4>
+        ${t.owner ? `<small style="color:var(--mute)">ผู้รับผิดชอบ: ${esc(t.owner)}</small>` : ''}
+      </div>
+      <button type="button" class="btn ghost sm" data-open-task="${esc(t.id)}" style="padding:4px 10px;font-size:12.5px">ดูงาน</button>
+    </div>
+  `).join('') : `<div class="empty" style="padding:16px;margin:8px 0">ไม่มีงานที่ครบกำหนดในวันนี้</div>`;
+
+  openModal(`
+    <div class="mh">
+      <h2>สรุปงานและปฏิทินประจำวัน</h2>
+      <button type="button" class="icon-btn" data-act="close" aria-label="ปิด">${I.x}</button>
+    </div>
+    <div style="color:var(--yellow);font:600 17px var(--head);margin-bottom:12px">📅 ${fmtLong(cleanDate)}</div>
+    <h3 style="font-size:15.5px;color:var(--text);margin-bottom:4px">ตารางการประชุม / นัดหมาย (${dayMeets.length} รายการ)</h3>
+    ${meetHtml}
+    <h3 style="font-size:15.5px;color:var(--text);margin:14px 0 4px">งานที่ครบกำหนดในวันนี้ (${dayTasks.length} งาน)</h3>
+    ${taskHtml}
+    <div class="mf">
+      <button type="button" class="btn ghost sm" id="dayAddMeetBtn">${I.plus}เพิ่มนัดหมายในวันนี้</button>
+      <button type="button" class="btn sm" data-act="close">ปิดหน้าต่าง</button>
+    </div>
+  `);
+
+  $('#dayAddMeetBtn').onclick = () => {
+    closeModal();
+    meetingForm(null, cleanDate);
+  };
+  $$('[data-open-meet]', $('#modal')).forEach(btn => {
+    btn.onclick = () => {
+      const mid = btn.getAttribute('data-open-meet');
+      closeModal();
+      viewMeetingModal(mid);
+    };
+  });
+  $$('[data-open-task]', $('#modal')).forEach(btn => {
+    btn.onclick = () => {
+      const tid = btn.getAttribute('data-open-task');
+      closeModal();
+      taskForm(tid);
+    };
+  });
 }
 
 function gcalConfigForm() {
@@ -1450,6 +1734,7 @@ document.addEventListener('click', async e => {
       const t = S.tasks.find(x => x.id === id);
       if (!t) break;
       confirmDialog('ยืนยันการลบรายการงาน', `ต้องการลบงาน "${t.title}" ออกจากระบบกลางใช่หรือไม่?`, async () => {
+        recordPendingOp('delete', 'task', t);
         S.tasks = S.tasks.filter(x => x.id !== id);
         renderAll();
         toast('กำลังลบงาน...');
@@ -1464,6 +1749,22 @@ document.addEventListener('click', async e => {
     case 'view-meeting':
       viewMeetingModal(id);
       break;
+    case 'open-day-detail':
+      openDayOverviewModal(b.dataset.date);
+      break;
+    case 'pick-day': {
+      const picked = b.dataset.date;
+      if (mDateFilter === picked) {
+        openDayOverviewModal(picked);
+      } else {
+        mDateFilter = picked;
+        const dp = $('#m-date-pick');
+        if (dp) dp.value = picked;
+        renderMeetings();
+        openDayOverviewModal(picked);
+      }
+      break;
+    }
     case 'edit-meeting':
       meetingForm(id);
       break;
@@ -1471,6 +1772,7 @@ document.addEventListener('click', async e => {
       const m = S.meetings.find(x => x.id === id);
       if (!m) break;
       confirmDialog('ยืนยันการลบนัดหมาย', `ต้องการลบ "${m.title}" ออกจากปฏิทินห้องใช่หรือไม่?`, async () => {
+        recordPendingOp('delete', 'meeting', m);
         S.meetings = S.meetings.filter(x => x.id !== id);
         renderAll();
         toast('กำลังลบนัดหมาย...');
@@ -1509,7 +1811,29 @@ document.addEventListener('click', async e => {
 });
 
 $('#t-search').addEventListener('input', e => { tf.q = e.target.value; renderTasks(); });
-$('#m-month').addEventListener('change', e => { mMonth = e.target.value; renderMeetings(); });
+$('#m-month').addEventListener('change', e => {
+  mMonth = e.target.value;
+  mDateFilter = '';
+  const dp = $('#m-date-pick');
+  if (dp) dp.value = '';
+  renderMeetings();
+});
+$('#m-date-pick').addEventListener('change', e => {
+  mDateFilter = e.target.value || '';
+  if (mDateFilter) {
+    mMonth = 'all';
+    renderMeetings();
+    openDayOverviewModal(mDateFilter);
+  } else {
+    renderMeetings();
+  }
+});
+$('#m-date-clear').addEventListener('click', () => {
+  mDateFilter = '';
+  const dp = $('#m-date-pick');
+  if (dp) dp.value = '';
+  renderMeetings();
+});
 $('#a-search').addEventListener('input', e => { af.q = e.target.value; renderAlerts(); });
 $('#a-type').addEventListener('change', e => { af.ftype = e.target.value; renderAlerts(); });
 $('#a-period').addEventListener('change', e => {
@@ -1539,10 +1863,10 @@ $('#nav').addEventListener('click', e => {
 // -----------------------------------------------------
 // REAL-TIME POLLING & VISIBILITY SYNC
 // -----------------------------------------------------
-// ซิงค์ข้อมูลอัตโนมัติทุกๆ 8 วินาที เพื่อให้ทุกเครื่องเห็นข้อมูลตรงกันตลอดเวลา
+// ซิงค์ข้อมูลอัตโนมัติทุกๆ 4 วินาที เพื่อให้ทุกเครื่องเห็นข้อมูลตรงกันแบบใกล้เคียง Real-time ที่สุด
 setInterval(() => {
   if (!document.hidden) syncGASData(true);
-}, 8000);
+}, 4000);
 
 // ซิงค์ทันทีเมื่อผู้ใช้สลับหน้าจอกลับมาที่แท็บนี้ หรือคลิกโฟกัสหน้าต่าง
 document.addEventListener('visibilitychange', () => {
